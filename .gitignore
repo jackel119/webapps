@@ -61,4 +61,4 @@ typings/
 .next
 
 # Facebook App API Keys
-config/fb_auth.txt
+config/fb_auth.js
