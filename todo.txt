@@ -1,0 +1,45 @@
+Things to do:
+
+Front End:
+  - Decide what we want for a front end
+  - Android vs React Native?
+  - Actually design the app
+
+Back End:
+  - Decide on design of database (users, expense logs, etc). SQL or NoSQL?
+    - Database must contain:
+      - Users (userid, names, password hashes)
+      - Groups (Groups of users, along with a list of transactions for).
+      - Transactions (See spreadsheets)
+  - Set up VM as server
+    - DoC Cloudstack vs MS Azure vs AWS
+    - DoC Cloudstack is free but ive heard it sucks, and im more familiar with AWS
+  - Figure out Authentication (OAuth2) through facebook/google 
+  - Set up socket connections
+  - Configure SSL/HTTPS encryption (Maybe?)
+
+Both:
+  - Agree on interface / API for interactions between the front/back
+  - Any extra features
+
+Outline:
+  Essential Features:
+    - An app used to track expenses, both personal and shared.
+    - i.e. people living together in a flat buying groceries together can split the bills
+      multiple ways, or split by cost of items, etc.
+      - Two ways of splitting:
+        - Directly between users, and within "groups" created by users. Groups would be for
+          frequent use amongt the same group of people. It is also possible to have normal user
+          transactions split between more than 2 people.
+    - Keeps track of net owed by each person.
+    - Users can customize their default settings (e.g. whether you need to "sign"
+      to accept a record, default currency, auto debt transfer, etc)
+
+  Potential Features:
+    - Ability to transfer debts
+    - Daily reminders on how much is owed, or if you reach a self-set cap.
+  
+  Reach Features:
+    - Scan receipts, parse/itemize.
+    - Integration with payment systems (Monzo, Paypal?) to allow users to settle debts.
+
