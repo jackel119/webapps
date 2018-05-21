@@ -1,4 +1,4 @@
-const fb = require('fb_auth');
+var fb = require('./fb_auth');
 
 module.exports={
   "facebook_api_key"      :     "1699398683492193",
@@ -9,4 +9,4 @@ module.exports={
   "username"              :     "root",
   "password"              :     "",
   "database"              :     "DB NAME"
-}
+};
