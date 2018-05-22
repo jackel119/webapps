@@ -12,7 +12,7 @@ var database = function() {
   this.newUser = (firstName, lastName, email ) => {
     var newUID = uuid(); 
     this.client.query("INSERT INTO \"USER\" \n \
-    VALUES ( $1, $2, $3, $4, $5, $6)\;", [newUID, firstName, lastName, email, 0, null]);
+    VALUES ( $1, $2, $3, $4, $5, $6, $7)\;", [newUID, firstName, lastName, email, 0, null, 0]);
   };
 
   // Created a new group with group name
@@ -45,9 +45,11 @@ var database = function() {
       AND GID = $2\;", [uid, gid]).then(result => result.rowCount === 0);
   };
 
-  this.newTX = (to, from, howMuch, currency, groupID) => {
+  this.newTX = (to, from, howMuch, currency, description, groupID) => {
+    var newUID = uuid(); 
+    var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
     this.client.query("INSERT INTO \"TRANSACTION\" \n \
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;")
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newUID, to, from, currency, howMuch, dateCreated, description, 0, groupID]);
   };
 
 };
@@ -56,9 +58,10 @@ module.exports = {
   Database : database
 };
 
-//var db = new Database();
-// db.newUser("Zicong", "Ma", "mazicong@gmail.com");
+var db = new database();
+//db.newUser("Iulia", "Ivana", "imi17@gmail.com");
 // db.newGroup("Peng you men");
 //db.groupAddMember("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6");
 //db.checkGroupMembership("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6").then(res => console.log(res));
 
+db.newTX("15d1dfe0-5dc0-11e8-bf39-c14e2075b722", "5ca7db60-5dd2-11e8-9144-9bb5fcee806a", 20, 0, "test tx", null);
