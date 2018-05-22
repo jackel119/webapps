@@ -62,6 +62,11 @@ var database = function() {
   }
 
   
+  this.belongsToGroups = (uid) => {
+    return this.client.query("SELECT \"GROUP\".GID, GNAME, CREATED FROM \"GROUP_MEMBERSHIP\" \n \
+      JOIN \"USER\" ON \"GROUP_MEMBERSHIP\".UID = \"USER\".UID JOIN \"GROUP\" ON \"GROUP_MEMBERSHIP\".GID = \"GROUP\".GID \n \
+      WHERE \"USER\".UID = $1\;", [uid]);
+  };
 
 };
 
@@ -77,4 +82,5 @@ var db = new database();
 
 // db.newTX("15d1dfe0-5dc0-11e8-bf39-c14e2075b722", "5ca7db60-5dd2-11e8-9144-9bb5fcee806a", 20, 0, "test tx", null);
 
-db.getUserByEmail('jackel119@gmail.com').then(res => console.log(res));
+// db.getUserByEmail('jackel119@gmail.com').then(res => console.log(res));
+db.belongsToGroups("15d1dfe0-5dc0-11e8-bf39-c14e2075b722").then(res => console.log(res));
