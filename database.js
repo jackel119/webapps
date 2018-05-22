@@ -4,14 +4,14 @@ const uuid            = require('uuid/v1');
 
 var database = function() {
 
-  this.client          =  new Client('webapp');
-  this.name = "webapp database";
+  this.client  =  new Client('webapp');
+  this.name    = "webapp database";
   this.client.connect();
 
   // Creates a new user
   this.newUser = (firstName, lastName, email ) => {
     var newUID = uuid(); 
-    this.client.query("INSERT INTO \"USER\" \n \
+    this.client.query("INSERT INTO USER_ACCOUNT \n \
     VALUES ( $1, $2, $3, $4, $5, $6, $7)\;", [newUID, firstName, lastName, email, 0, null, 0]);
   };
 
@@ -19,7 +19,7 @@ var database = function() {
   this.newGroup = (groupName) => {
     var newUID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    this.client.query("INSERT INTO \"GROUP\" \n \
+    this.client.query("INSERT INTO USER_GROUP \n \
       VALUES ( $1, $2, $3 )\;", [newUID, groupName, dateCreated]);
   };
 
@@ -49,7 +49,7 @@ var database = function() {
   this.newTX = (to, from, howMuch, currency, description, groupID) => {
     var newUID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    this.client.query("INSERT INTO \"TRANSACTION\" \n \
+    this.client.query("INSERT INTO TRANSACTION \n \
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newUID, to, from, currency, howMuch, dateCreated, description, 0, groupID]);
   };
 
@@ -57,7 +57,7 @@ var database = function() {
   // Gets user by email, returns a PROMISE
   // NOT SAFE, can return 0 rows if email not in db
   this.getUserByEmail = (email) => {
-    return this.client.query("SELECT * FROM \"USER\" \n \
+    return this.client.query("SELECT * FROM USER_ACCOUNT \n \
       WHERE EMAIL = $1 \;", [email]);
   }
 
@@ -65,22 +65,28 @@ var database = function() {
   // All the groups a user account belongs to
   // Returns a PROMISE
   this.belongsToGroups = (uid) => {
-    return this.client.query("SELECT \"GROUP\".GID, GNAME, CREATED FROM \"GROUP_MEMBERSHIP\" \n \
-      JOIN \"USER\" ON \"GROUP_MEMBERSHIP\".UID = \"USER\".UID JOIN \"GROUP\" ON \"GROUP_MEMBERSHIP\".GID = \"GROUP\".GID \n \
-      WHERE \"USER\".UID = $1\;", [uid]);
+    return this.client.query("SELECT USER_GROUP.GID, GNAME, CREATED FROM GROUP_MEMBERSHIP \n \
+      JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
+      WHERE USER_ACCOUNT.UID = $1\;", [uid]);
   };
 
   // All transactions to a user
   // Returns a PROMISE
   this.txsTo = (uid) => {
-    return this.client.query("SELECT * FROM \"TRANSACTION\" WHERE TO_USER = $1;", [uid]);
+    return this.client.query("SELECT * FROM TRANSACTION WHERE TO_USER = $1;", [uid]);
   };
 
-  //All transactions from a user
-  //Returns a PROMISE
+  // All transactions from a user
+  // Returns a PROMISE
   this.txsFrom = (uid) => {
-    return this.client.query("SELECT * FROM \"TRANSACTION\" WHERE FROM_USER = $1;", [uid]);
+    return this.client.query("SELECT * FROM TRANSACTION WHERE FROM_USER = $1;", [uid]);
   };
+
+  // All group transactions
+  // Returns a PROMISE
+  this.groupTXs = (gid) => {
+    return this.client.query("SELECT * FROM TRANSACTION WHERE GID = $1", [gid]);
+  }
 
 };
 
@@ -90,11 +96,17 @@ module.exports = {
 
 var db = new database();
 //db.newUser("Iulia", "Ivana", "imi17@gmail.com");
-// db.newGroup("Peng you men");
+//db.newUser("Jack", "Pordi", "jackel119@gmail.com");
+//db.newUser("Dylan", "Ma", "mazicong@gmail.com");
+//db.newGroup("Peng you men");
 //db.groupAddMember("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6");
 //db.checkGroupMembership("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6").then(res => console.log(res));
 
-// db.newTX("15d1dfe0-5dc0-11e8-bf39-c14e2075b722", "5ca7db60-5dd2-11e8-9144-9bb5fcee806a", 20, 0, "test tx", null);
+ //db.newTX("8cfaf520-5dde-11e8-b215-990e38a9bed4", "bb2dbd61-5dde-11e8-be4c-d133297a838f", 20, 0, "test tx", null);
+
+db.getUserByEmail("mazicong@gmail.com").then(res => db.txsTo(res.rows[0].uid).then(res => console.log(res)));
+//db.getUserByEmail("mazicong@gmail.com").then(res => console.log(res.rows[0].uid));
+
 
 // db.getUserByEmail('jackel119@gmail.com').then(res => console.log(res));
-db.belongsToGroups("15d1dfe0-5dc0-11e8-bf39-c14e2075b722").then(res => console.log(res));
+//db.belongsToGroups("15d1dfe0-5dc0-11e8-bf39-c14e2075b722").then(res => console.log(res));
