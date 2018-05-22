@@ -62,10 +62,24 @@ var database = function() {
   }
 
   
+  // All the groups a user account belongs to
+  // Returns a PROMISE
   this.belongsToGroups = (uid) => {
     return this.client.query("SELECT \"GROUP\".GID, GNAME, CREATED FROM \"GROUP_MEMBERSHIP\" \n \
       JOIN \"USER\" ON \"GROUP_MEMBERSHIP\".UID = \"USER\".UID JOIN \"GROUP\" ON \"GROUP_MEMBERSHIP\".GID = \"GROUP\".GID \n \
       WHERE \"USER\".UID = $1\;", [uid]);
+  };
+
+  // All transactions to a user
+  // Returns a PROMISE
+  this.txsTo = (uid) => {
+    return this.client.query("SELECT * FROM \"TRANSACTION\" WHERE TO_USER = $1;", [uid]);
+  };
+
+  //All transactions from a user
+  //Returns a PROMISE
+  this.txsFrom = (uid) => {
+    return this.client.query("SELECT * FROM \"TRANSACTION\" WHERE FROM_USER = $1;", [uid]);
   };
 
 };
