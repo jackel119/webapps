@@ -52,6 +52,11 @@ var database = function() {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newUID, to, from, currency, howMuch, dateCreated, description, 0, groupID]);
   };
 
+  this.allGroupsUserIn = (uid) => {
+    return this.client.query("SELECT * FROM \"GROUP\" \n
+      FROM \"GROUP_MEMBERSHIP\" JOIN 
+  };
+
 };
 
 module.exports = {
