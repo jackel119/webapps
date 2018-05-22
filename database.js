@@ -53,8 +53,9 @@ var database = function() {
   };
 
   this.allGroupsUserIn = (uid) => {
-    return this.client.query("SELECT * FROM \"GROUP\" \n
-      FROM \"GROUP_MEMBERSHIP\" JOIN 
+    return this.client.query("SELECT GID, GNAME, CREATED FROM \"GROUP_MEMBERSHIP\" \n \
+      JOIN \"USER\" ON \"GROUP_MEMBERSHIP\".UID = \"USER\".UID JOIN \"GROUP\" ON \"GROUP_MEMBERSHIP\".GID = \"GROUP\".GID \n \
+      WHERE UID = $1\;", [uid]).then(result);
   };
 
 };
