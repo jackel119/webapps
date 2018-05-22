@@ -11,7 +11,6 @@ var app               =  express();
 var pg                =  require('./database');
 
 const db = new pg.Database();
-console.log(db.name);
 
 var server = app.listen(2605, () => {
   console.log("Listening to requests on port 2605");

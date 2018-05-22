@@ -9,13 +9,15 @@ var database = function() {
   this.client.connect();
 
   // Creates a new user
+  // SAFE (but currently does not return whether a new user has been created)
   this.newUser = (firstName, lastName, email ) => {
     var newUID = uuid(); 
     this.client.query("INSERT INTO USER_ACCOUNT \n \
-    VALUES ( $1, $2, $3, $4, $5, $6, $7)\;", [newUID, firstName, lastName, email, 0, null, 0]);
+    VALUES ( $1, $2, $3, $4, $5, $6, $7)\;", [newUID, firstName, lastName, email, 0, null, 0]).catch(() => {});
   };
 
   // Created a new group with group name
+  // TODO: Add constraint that a user cannot be in two groups of the same name
   this.newGroup = (groupName) => {
     var newUID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -24,6 +26,8 @@ var database = function() {
   };
 
   // Adds USER with uid to GROUP with gid
+  // SAFE: Doesn't add user if already in group, but doesn't return whether
+  //       that is the case.
   this.groupAddMember = (uid, gid) => {
     // Check if user is already in group or not
     // if user not in group, then add to group
@@ -46,11 +50,13 @@ var database = function() {
   };
 
   // Creates a new transaction
+  // SAFE: Never fails
+  // TODO: Needs to return txid.
   this.newTX = (to, from, howMuch, currency, description, groupID) => {
     var newUID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
     this.client.query("INSERT INTO TRANSACTION \n \
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newUID, to, from, currency, howMuch, dateCreated, description, 0, groupID]);
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newUID, to, from, currency, howMuch, dateCreated, description, 0, groupID]).then( () => return newUID );
   };
 
 
@@ -104,7 +110,7 @@ var db = new database();
 
  //db.newTX("8cfaf520-5dde-11e8-b215-990e38a9bed4", "bb2dbd61-5dde-11e8-be4c-d133297a838f", 20, 0, "test tx", null);
 
-db.getUserByEmail("mazicong@gmail.com").then(res => db.txsTo(res.rows[0].uid).then(res => console.log(res)));
+// db.getUserByEmail("mazicong@gmail.com").then(res => db.txsTo(res.rows[0].uid).then(res => console.log(res)));
 //db.getUserByEmail("mazicong@gmail.com").then(res => console.log(res.rows[0].uid));
 
 
