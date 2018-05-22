@@ -45,6 +45,7 @@ var database = function() {
       AND GID = $2\;", [uid, gid]).then(result => result.rowCount === 0);
   };
 
+  // Creates a new transaction
   this.newTX = (to, from, howMuch, currency, description, groupID) => {
     var newUID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
@@ -52,10 +53,19 @@ var database = function() {
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newUID, to, from, currency, howMuch, dateCreated, description, 0, groupID]);
   };
 
-  this.allGroupsUserIn = (uid) => {
-    return this.client.query("SELECT GID, GNAME, CREATED FROM \"GROUP_MEMBERSHIP\" \n \
+
+  // Gets user by email, returns a PROMISE
+  // NOT SAFE, can return 0 rows if email not in db
+  this.getUserByEmail = (email) => {
+    return this.client.query("SELECT * FROM \"USER\" \n \
+      WHERE EMAIL = $1 \;", [email]);
+  }
+
+  
+  this.belongsToGroups = (uid) => {
+    return this.client.query("SELECT \"GROUP\".GID, GNAME, CREATED FROM \"GROUP_MEMBERSHIP\" \n \
       JOIN \"USER\" ON \"GROUP_MEMBERSHIP\".UID = \"USER\".UID JOIN \"GROUP\" ON \"GROUP_MEMBERSHIP\".GID = \"GROUP\".GID \n \
-      WHERE UID = $1\;", [uid]).then(result);
+      WHERE \"USER\".UID = $1\;", [uid]);
   };
 
 };
@@ -70,4 +80,7 @@ var db = new database();
 //db.groupAddMember("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6");
 //db.checkGroupMembership("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6").then(res => console.log(res));
 
-db.newTX("15d1dfe0-5dc0-11e8-bf39-c14e2075b722", "5ca7db60-5dd2-11e8-9144-9bb5fcee806a", 20, 0, "test tx", null);
+// db.newTX("15d1dfe0-5dc0-11e8-bf39-c14e2075b722", "5ca7db60-5dd2-11e8-9144-9bb5fcee806a", 20, 0, "test tx", null);
+
+// db.getUserByEmail('jackel119@gmail.com').then(res => console.log(res));
+db.belongsToGroups("15d1dfe0-5dc0-11e8-bf39-c14e2075b722").then(res => console.log(res));
