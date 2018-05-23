@@ -94,6 +94,10 @@ var database = function() {
     return this.client.query("SELECT * FROM TRANSACTION WHERE GID = $1", [gid]);
   }
 
+  this.allGroups = () => {
+    return this.client.query("SELECT * FROM USER_GROUP");
+  }
+
 };
 
 module.exports = {
