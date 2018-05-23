@@ -14,7 +14,7 @@ var database = function(db_name) {
   // SAFE (but currently does not return whether a new user has been created)
   this.newUser = (firstName, lastName, email ) => {
     var newUID = uuid(); 
-    this.client.query("INSERT INTO USER_ACCOUNT \n \
+    return this.client.query("INSERT INTO USER_ACCOUNT \n \
     VALUES ( $1, $2, $3, $4, $5, $6, $7)\;", [newUID, firstName, lastName, email, 0, null, 0]).catch(() => {});
   };
 
@@ -23,7 +23,7 @@ var database = function(db_name) {
   this.newGroup = (groupName) => {
     var newUID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    this.client.query("INSERT INTO USER_GROUP \n \
+    return this.client.query("INSERT INTO USER_GROUP \n \
       VALUES ( $1, $2, $3 )\;", [newUID, groupName, dateCreated]);
   };
 
