@@ -72,11 +72,45 @@ var database = function(db_name) {
 
   
   // All the groups a user account belongs to
+  // Query from uid
   // Returns a PROMISE
   this.belongsToGroups = (uid) => {
     return this.client.query("SELECT USER_GROUP.GID, GNAME, CREATED FROM GROUP_MEMBERSHIP \n \
       JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
       WHERE USER_ACCOUNT.UID = $1\;", [uid]);
+  };
+
+  // All the groups a user account belongs to
+  // Query from email
+  // Returns a PROMISE
+  this.belongsToGroups = (email) => {
+    return this.client.query("SELECT USER_GROUP.GID, GNAME, CREATED FROM GROUP_MEMBERSHIP \n \
+      JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
+      WHERE USER_ACCOUNT.EMAIL = $1\;", [email]);
+  };
+
+  // Returns all users that belongs to a specific group
+  // Returns a promise
+  this.getUserInGroup = (gid) => {
+    return this.client.query("SELECT USER_ACCOUNT.* FROM GROUP_MEMBERSHIP \n \
+      JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
+      WHERE GROUP_MEMBERSHIP.GID = $1\;", [gid]);
+  };
+
+  // Returns the sum of the net positives
+  // Returns a promise
+  this.moneyIn = (uid1, uid2) => {
+    return this.client.query("SELECT SUM(AMOUNT) \n \
+      FROM TRANSACTION \n \
+      WHERE FROM_USER = uid1 AND TO_USER = uid2\;", [uid1, uid2]);
+  };
+
+  // Returns the sum of the net negatives
+  // Returns a promise
+  this.moneyOut = (uid1, uid2) => {
+    return this.client.query("SELECT SUM(AMOUNT) \n \
+      FROM TRANSACTION \n \
+      WHERE FROM_USER = uid2 AND TO_USER = uid1\;", [uid1, uid2]);
   };
 
   // All transactions to a user
@@ -97,9 +131,11 @@ var database = function(db_name) {
     return this.client.query("SELECT * FROM TRANSACTION WHERE GID = $1", [gid]);
   };
 
+  // Returns all groups registered
   this.allGroups = () => {
     this.client.query("SELECT * FROM USER_GROUP").then(res => console.log(res.rows));
   };
+
 
 };
 
