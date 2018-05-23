@@ -63,7 +63,8 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
 
       // Generates a single random transaction
       var genSingleTX = () => {
-        var amount  = Math.random() * 200;
+        var amount  = (Math.random() * 200).toFixed(2);
+        console.log(amount);
         var newTXID = uuid();
         var time    = new Date().toISOString().slice(0, 19)
                             .replace('T', ' ');
@@ -83,6 +84,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
 
     Promise.all([
         db.client.query("DELETE FROM TRANSACTION"),
+        db.client.query("UPDATE USER_ACCOUNT SET NET = 0;"),
         db.client.query("DELETE FROM GROUP_MEMBERSHIP")])
         // db.client.query("DELETE FROM USER_ACCOUNT"),
         // db.client.query("DELETE FROM USER_GROUP")])
