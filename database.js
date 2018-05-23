@@ -2,10 +2,12 @@ const { Client }      = require('pg');
 const uuid            = require('uuid/v1');
 
 
-var database = function() {
+var database = function(db_name) {
 
-  this.client  =  new Client('webapp');
-  this.name    = "webapp database";
+  this.client  =  new Client({
+    database: db_name
+  });
+  this.db_name = db_name;
   this.client.connect();
 
   // Creates a new user
@@ -34,7 +36,7 @@ var database = function() {
     this.checkGroupMembership(uid, gid).then(res => {
       if (res) {
         console.log('Adding user into group');
-        this.client.query("INSERT INTO \"GROUP_MEMBERSHIP\" \n \
+        this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
         VALUES ($1, $2)\;", [gid, uid]);
       } else {
         console.log('User already in group');
@@ -44,7 +46,7 @@ var database = function() {
 
   // A PROMISE that returns true if USER with uid is NOT in group with GID
   this.checkGroupMembership = (uid, gid) => {
-    return this.client.query("SELECT * FROM \"GROUP_MEMBERSHIP\" \n \
+    return this.client.query("SELECT * FROM GROUP_MEMBERSHIP \n \
       WHERE UID = $1 \n \
       AND GID = $2\;", [uid, gid]).then(result => result.rowCount === 0);
   };
@@ -65,7 +67,8 @@ var database = function() {
   this.getUserByEmail = (email) => {
     return this.client.query("SELECT * FROM USER_ACCOUNT \n \
       WHERE EMAIL = $1 \;", [email]);
-  }
+  };
+
 
   
   // All the groups a user account belongs to
@@ -92,11 +95,11 @@ var database = function() {
   // Returns a PROMISE
   this.groupTXs = (gid) => {
     return this.client.query("SELECT * FROM TRANSACTION WHERE GID = $1", [gid]);
-  }
+  };
 
   this.allGroups = () => {
-    return this.client.query("SELECT * FROM USER_GROUP");
-  }
+    this.client.query("SELECT * FROM USER_GROUP").then(res => console.log(res.rows));
+  };
 
 };
 
@@ -104,7 +107,7 @@ module.exports = {
   Database : database
 };
 
-var db = new database();
+// var db = new database();
 //db.newUser("Iulia", "Ivana", "imi17@gmail.com");
 //db.newUser("Jack", "Pordi", "jackel119@gmail.com");
 //db.newUser("Dylan", "Ma", "mazicong@gmail.com");
