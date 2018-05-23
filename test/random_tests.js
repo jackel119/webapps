@@ -15,7 +15,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
     db.client.query("DELETE FROM GROUP_MEMBERSHIP");
 
 
-    let newUserStream = new Promise((res, rej) => {
+    var newUserStream = new Promise((res, rej) => {
       fs.createReadStream('./test/fake_users.csv')
         .pipe(csv())
         .on('data', (data) => {
@@ -28,7 +28,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
         });
     })
 
-    let newGroupStream = new Promise( (res, rej) => {
+    var newGroupStream = new Promise( (res, rej) => {
       fs.createReadStream('./test/fake_groups.csv')
         .pipe(csv())
         .on('data', (data) => {
