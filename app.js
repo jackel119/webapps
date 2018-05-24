@@ -16,7 +16,34 @@ var server = app.listen(2605, () => {
   console.log("Listening to requests on port 2605");
 });
 
-app.use(express.static('public'));
+// app.use(express.static('public'));
+
+passport.use(
+  new FacebookStrategy({
+    clientID: config.facebook_api_key,
+    clientSecret: config.facebook_api_secret,
+    callbackURL: 'http://localhost:2605/auth/facebook/callback',
+    profileFields: ['id', 'emails', 'name']
+  },
+  (accessToken, refreshToken, profile, cb) => {
+    console.log(accessToken);
+    console.log(profile);
+    //cb(null, null);
+  }
+
+));
+
+app.use(passport.initialize());
+
+app.get('/login/fb', passport.authenticate('facebook', {scope : ['email']}));
+
+app.get(
+  '/auth/facebook/callback',
+  passport.authenticate('facebook', { session: false }),
+  (req, res) => {
+    res.send('AUTH WAS GOOD!');
+  }
+);
 
 var io = socket(server);
 
@@ -38,3 +65,4 @@ io.on('connection', (socket) => {
   });
 
 });
+
