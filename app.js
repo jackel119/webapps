@@ -16,7 +16,7 @@ var server = app.listen(2605, () => {
   console.log("Listening to requests on port 2605");
 });
 
-// app.use(express.static('public'));
+app.use(express.static('public'));
 
 passport.use(
   new FacebookStrategy({
@@ -27,8 +27,8 @@ passport.use(
   },
   (accessToken, refreshToken, profile, cb) => {
     console.log(accessToken);
-    console.log(profile);
-    //cb(null, null);
+    console.log(profile._json.email);
+    cb(null, profile);
   }
 
 ));
