@@ -6,15 +6,19 @@ Front End:
   - Actually design the app
 
 Back End:
-  - Decide on design of database (users, expense logs, etc). SQL or NoSQL?
-    - Database must contain:
-      - Users (userid, names, password hashes)
-      - Groups (Groups of users, along with a list of transactions for).
-      - Transactions (See spreadsheets)
+    - Extra Database Features
+      - Friends List
+      - Transaction Comments?
   - Set up VM as server
     - DoC Cloudstack vs MS Azure vs AWS
     - DoC Cloudstack is free but ive heard it sucks, and im more familiar with AWS
   - Figure out Authentication (OAuth2) through facebook/google 
+    - Get fb_id, names, email from FB.
+    - Check if already exists user with that email
+      - There is, and with the same fb_id => Normal login, no problem
+      - There isn't one => create a new user!
+      - There is, but with no fb_id => Associate?
+      - There is, with a DIFFERENT fb_id (is this possible?) => ????
   - Set up socket connections
   - Configure SSL/HTTPS encryption (Maybe?)
 

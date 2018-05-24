@@ -25,10 +25,10 @@ passport.use(
     callbackURL: 'http://localhost:2605/auth/facebook/callback',
     profileFields: ['id', 'emails', 'name']
   },
-  (accessToken, refreshToken, profile, cb) => {
+  (accessToken, refreshToken, profile, done) => {
     console.log(accessToken);
     console.log(profile._json.email);
-    cb(null, profile);
+    done(null, profile);
   }
 
 ));
