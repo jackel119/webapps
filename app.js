@@ -7,8 +7,8 @@ var session           =  require('express-session');
 var cookieParser      =  require('cookie-parser');
 var bodyParser        =  require('body-parser');
 var config            =  require('./config/config');
-var app               =  express();
 var pg                =  require('./database');
+var app               =  express();
 
 const db = new pg.Database('webapp');
 
@@ -18,6 +18,7 @@ var server = app.listen(2605, () => {
 
 app.use(express.static('public'));
 
+// Set passport to use FacebookStrategy
 passport.use(
   new FacebookStrategy({
     clientID: config.facebook_api_key,
@@ -33,8 +34,10 @@ passport.use(
 
 ));
 
+// Use passport
 app.use(passport.initialize());
 
+// Direct User to login with facebook
 app.get('/login/fb', passport.authenticate('facebook', {scope : ['email']}));
 
 app.get(
