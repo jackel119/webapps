@@ -10,7 +10,7 @@ var config            =  require('./config/config');
 var pg                =  require('./database');
 var app               =  express();
 
-const db = new pg.Database('webapp');
+const db = new pg.Database('webapp-testing');
 
 var server = app.listen(2605, () => {
   console.log("Listening to requests on port 2605");
@@ -28,7 +28,8 @@ passport.use(
   },
   (accessToken, refreshToken, profile, done) => {
     console.log(accessToken);
-    console.log(profile._json.email);
+    console.log(profile._json);
+    db.fb_login(profile._json);
     done(null, profile);
   }
 

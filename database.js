@@ -12,10 +12,10 @@ var database = function(db_name) {
 
   // Creates a new user
   // SAFE (but currently does not return whether a new user has been created)
-  this.newUser = (firstName, lastName, email ) => {
+  this.newUser = (firstName, lastName, email, fb_id = null) => {
     var newUID = uuid(); 
     return this.client.query("INSERT INTO USER_ACCOUNT \n \
-    VALUES ( $1, $2, $3, $4, $5, $6, $7)\;", [newUID, firstName, lastName, email, 0, null, 0]).catch(() => {});
+    VALUES ( $1, $2, $3, $4, $5, $6, $7, $8)\;", [newUID, firstName, lastName, email, 0, null, 0, fb_id]).catch(() => {});
   };
 
   // Created a new group with group name
@@ -68,8 +68,6 @@ var database = function(db_name) {
     return this.client.query("SELECT * FROM USER_ACCOUNT \n \
       WHERE EMAIL = $1 \;", [email]);
   };
-
-
   
   // All the groups a user account belongs to
   // Query from uid
@@ -131,9 +129,32 @@ var database = function(db_name) {
     return this.client.query("SELECT * FROM TRANSACTION WHERE GID = $1", [gid]);
   };
 
-  // Returns all groups registered
+  // Returns all groups registered, in rows
+  // Returns a PROMISE
   this.allGroups = () => {
-    this.client.query("SELECT * FROM USER_GROUP").then(res => console.log(res.rows));
+    return this.client.query("SELECT * FROM USER_GROUP").then(res => res.rows);
+  };
+
+  // Facebook Login
+  this.fb_login = (data) => {
+    return this.getUserByEmail(data.email).then(res => {
+      if (res.rowCount === 1) { // There is a user with that email
+        if (res.rows[0].fb_id === null) { // Associate user with fb_id
+          this.associateFB_email(data.email, data.id);
+        } else if (res.rows[0].fb_id != data.id) { 
+          // Check that db's fb_id and actual fb_id are equivalent
+          return Promise.reject(new Error('Different fb_id associated with email!'));
+        }
+      } else { // ^ there isn't, so create a user
+        return this.newUser(data.first_name, data.last_name, data.email, data.id);
+      }
+    });
+  };
+
+  this.associateFB_email = (email, id) => {
+     return this.client.query("UPDATE USER_ACCOUNT \n \
+      SET FB_ID = $1 \n \
+      WHERE EMAIL = $2", [id, email]);
   };
 
 
@@ -143,9 +164,9 @@ module.exports = {
   Database : database
 };
 
-// var db = new database();
+// var db = new database('webapp-testing');
 //db.newUser("Iulia", "Ivana", "imi17@gmail.com");
-//db.newUser("Jack", "Pordi", "jackel119@gmail.com");
+// db.newUser("Jack", "Pordi", "jackel119@gmail.com");
 //db.newUser("Dylan", "Ma", "mazicong@gmail.com");
 //db.newGroup("Peng you men");
 //db.groupAddMember("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6");
