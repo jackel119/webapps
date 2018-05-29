@@ -23,7 +23,7 @@ passport.use(
   new FacebookStrategy({
     clientID: config.facebook_api_key,
     clientSecret: config.facebook_api_secret,
-    callbackURL: 'http://localhost:2605/auth/facebook/callback',
+    callbackURL: 'http://www.jackpordi.co.uk:2605/auth/facebook/callback',
     profileFields: ['id', 'emails', 'name']
   },
   (accessToken, refreshToken, profile, done) => {
@@ -67,6 +67,11 @@ io.on('connection', (socket) => {
   socket.on('test-packet', (data) => {
     console.log(data.message);
   });
+
+  socket.on('hello-message', (data) => {
+    console.log(data.message);
+  });
+
 
 });
 
