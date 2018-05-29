@@ -1,4 +1,4 @@
-var socket = io.connect("http://localhost:2605");
+var socket = io.connect("http://www.jackpordi.com:2605");
 
 var gid = document.getElementById('gid');
     button = document.getElementById('request');
