@@ -6,7 +6,7 @@ services:
   - postgresql
 
 before_script:
-  - psql -c 'create database webapp-testing;' -U postgres
+  - psql -c 'create database webapp\-testing;' -U postgres
   - psql -c 'CREATE TABLE USER_ACCOUNT(
               UID UUID PRIMARY KEY NOT NULL,
               FIRST_NAME TEXT NOT NULL,
@@ -16,16 +16,16 @@ before_script:
               PASSWORD_HASH CHAR(64),
               NET NUMERIC NOT NULL,
               FB_ID TEXT
-            );'
+            );' -U postgres
   - psql -c 'CREATE TABLE USER_GROUP(
               GID UUID PRIMARY KEY NOT NULL,
               GNAME TEXT NOT NULL,
               CREATED TIMESTAMP NOT NULL
-              );'
+              );' -U postgres
   - psql -c 'CREATE TABLE GROUP_MEMBERSHIP (
                GID UUID REFERENCES USER_GROUP (GID),
                UID UUID REFERENCES USER_ACCOUNT (UID)
-             );'
+             );' -U postgres
   - psql -c 'CREATE TABLE TRANSACTION (
               TXID UUID PRIMARY KEY NOT NULL,
               FROM_USER UUID REFERENCES USER_ACCOUNT (UID),
@@ -36,7 +36,7 @@ before_script:
               DESCRIPTION TEXT,
               STATUS INT NOT NULL,
               GID UUID REFERENCES USER_GROUP (GID)
-            );'
+            );' -U postgres
   - psql -c 'CREATE OR REPLACE FUNCTION updateNet()
               RETURNS TRIGGER AS
             $BODY$
@@ -51,8 +51,8 @@ before_script:
               RETURN NEW;
             END;
             $BODY$
-            LANGUAGE plpgsql;'
+            LANGUAGE plpgsql;' -U postgres
   - psql -c 'CREATE TRIGGER updateNetTrigger
             AFTER INSERT ON TRANSACTION
             FOR EACH ROW
-            EXECUTE PROCEDURE updateNet();'
+            EXECUTE PROCEDURE updateNet();' -U postgres
