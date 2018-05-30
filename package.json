@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha",
-    "start" : "nodemon app.js"
+    "start": "nodemon app.js"
   },
   "repository": {
     "type": "git",
@@ -24,6 +24,8 @@
     "express": "^4.16.3",
     "express-session": "^1.15.6",
     "fast-csv": "^2.4.1",
+    "greenlock-express": "^2.1.6",
+    "https": "^1.0.0",
     "mocha": "^5.2.0",
     "mongodb": "^3.1.0-beta4",
     "mongoose": "^5.1.1",
