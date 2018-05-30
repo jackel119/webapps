@@ -9,7 +9,7 @@ dist: trusty
 
 before_script:
   - psql -c "CREATE DATABASE \"webapp-testing\";" -U postgres
-  - psql -c 'CREATE TABLE USER_ACCOUNT(
+  - psql -d webapp-testing-c 'CREATE TABLE USER_ACCOUNT(
               UID UUID PRIMARY KEY NOT NULL,
               FIRST_NAME TEXT NOT NULL,
               LAST_NAME TEXT,
@@ -19,16 +19,16 @@ before_script:
               NET NUMERIC NOT NULL,
               FB_ID TEXT
             );' -U postgres
-  - psql -c 'CREATE TABLE USER_GROUP(
+  - psql -d webapp-testing -c 'CREATE TABLE USER_GROUP(
               GID UUID PRIMARY KEY NOT NULL,
               GNAME TEXT NOT NULL,
               CREATED TIMESTAMP NOT NULL
               );' -U postgres
-  - psql -c 'CREATE TABLE GROUP_MEMBERSHIP (
+  - psql -d webapp-testing -c 'CREATE TABLE GROUP_MEMBERSHIP (
                GID UUID REFERENCES USER_GROUP (GID),
                UID UUID REFERENCES USER_ACCOUNT (UID)
              );' -U postgres
-  - psql -c 'CREATE TABLE TRANSACTION (
+  - psql -d webapp-testing -c 'CREATE TABLE TRANSACTION (
               TXID UUID PRIMARY KEY NOT NULL,
               FROM_USER UUID REFERENCES USER_ACCOUNT (UID),
               TO_USER UUID REFERENCES USER_ACCOUNT (UID),
@@ -39,7 +39,7 @@ before_script:
               STATUS INT NOT NULL,
               GID UUID REFERENCES USER_GROUP (GID)
             );' -U postgres
-  - psql -c 'CREATE OR REPLACE FUNCTION updateNet()
+  - psql -d webapp-testing -c 'CREATE OR REPLACE FUNCTION updateNet()
               RETURNS TRIGGER AS
             $BODY$
             DECLARE 
@@ -54,7 +54,7 @@ before_script:
             END;
             $BODY$
             LANGUAGE plpgsql;' -U postgres
-  - psql -c 'CREATE TRIGGER updateNetTrigger
+  - psql -d webapp-testing -c 'CREATE TRIGGER updateNetTrigger
             AFTER INSERT ON TRANSACTION
             FOR EACH ROW
             EXECUTE PROCEDURE updateNet();' -U postgres
