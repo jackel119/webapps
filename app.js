@@ -23,8 +23,15 @@ const db = new pg.Database('webapp-testing');
 //--------EXPRESS SERVER---------------
 //-------------------------------------
 
+app.enable('trust proxy');
+app.use(function(req, res, next) {
+  if (req.secure){
+    return next();
+  }
+  res.redirect("https://" + req.headers.host + req.url);
+});
 app.use(express.static('public'));
-app.use(httpRedirect.redirectToHTTPS());
+// app.use(httpRedirect.redirectToHTTPS());
 
 // HTTP Server Redirect to HTTPS
 
