@@ -8,9 +8,9 @@ const uuid   = require('uuid/v1');
 // Test Environment
 describe('Generates randomized groups from fake data and simulates TXs', () => {
   const db = new pg.Database('webapp-testing');
+
+  // BEFORE
   before((done) => {
-
-
     var newUserStream = () => {
       var promises = [];
       fs.createReadStream('./test/fake_users.csv')
@@ -64,7 +64,6 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
       // Generates a single random transaction
       var genSingleTX = () => {
         var amount  = (Math.random() * 200).toFixed(2);
-        console.log(amount);
         var newTXID = uuid();
         var time    = new Date().toISOString().slice(0, 19)
                             .replace('T', ' ');
@@ -83,11 +82,10 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
     };
 
     Promise.all([
-        db.client.query("DELETE FROM USER_ACCOUNT"),
-        db.client.query("DELETE FROM USER_GROUP"),
         db.client.query("DELETE FROM TRANSACTION"),
         db.client.query("UPDATE USER_ACCOUNT SET NET = 0;"),
-        db.client.query("DELETE FROM GROUP_MEMBERSHIP")])
+        db.client.query("DELETE FROM GROUP_MEMBERSHIP"),
+        db.client.query("DELETE FROM USER_GROUP")])
       .then(() => { 
         Promise.all([
           newUserStream(), newGroupStream()
@@ -105,29 +103,22 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
   }); 
 
   it('Selects random user account', () => {
-    db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log(res.rows[0]));
-    db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log(res.rows[0]));
-    db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log(res.rows[0]));
-    db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log(res.rows[0]));
-    db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log(res.rows[0]));
+    return db.client.query('SELECT * FROM USER_ACCOUNT \n \
+      ORDER BY RANDOM() LIMIT 1;').then(res => {
+        console.log(res);
+        assert.equal(res.rowCount, 1);
+        done();
+      });
+
   });
 
-  it('Selects random groups', () => {
+  it('Selects random groups', (done) => {
     db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log('group name: ', res.rows[0].gname));
-    db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log('group name: ', res.rows[0].gname));
-    db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log('group name: ', res.rows[0].gname));
-    db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log('group name: ', res.rows[0].gname));
-    db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log('group name: ', res.rows[0].gname));
+      ORDER BY RANDOM() LIMIT 1;', res => {
+        console.log(res);
+        assert.equal(res.rowCount, 1);
+        done();
+      });
   });
 
   
