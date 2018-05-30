@@ -13,3 +13,7 @@ button.addEventListener('click', function() {
 socket.on('message', (data) => {
   gid.value = data.message;
 });
+
+socket.on('connect', () => {
+  gid.value = 'Success!';
+});

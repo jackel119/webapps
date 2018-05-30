@@ -62,6 +62,10 @@ var io = socket(server);
 io.on('connection', (socket) => {
   console.log('Made socket connection with socket:', socket.id);
 
+  socket.on('disconnect', (reason) => {
+    console.log('Socket', socket.id, 'has disconnected');
+  });
+
   socket.on('query', (query) => {
     console.log("Data UID:", query.uid);
     db.client.query("SELECT * FROM \"USER\" WHERE UID = $1\;", [query.uid], (err, res) => {
