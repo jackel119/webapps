@@ -20,6 +20,8 @@ const db = new pg.Database('webapp-testing');
 //-------------------------------------
 //--------EXPRESS SERVER---------------
 //-------------------------------------
+app.use(express.static('public'));
+
 var server = https.createServer({
   key : fs.readFileSync('/etc/letsencrypt/live/jackpordi.com/privkey.pem'),
   cert: fs.readFileSync('/etc/letsencrypt/live/jackpordi.com/fullchain.pem')
@@ -27,7 +29,6 @@ var server = https.createServer({
   console.log("Listening to requests on port 443");
 });
 
-app.use(express.static('public'));
 
 //-------------------------------------
 //--------WEBSOCKET STUFF--------------
