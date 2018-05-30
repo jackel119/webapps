@@ -83,14 +83,16 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
     };
 
     Promise.all([
+        db.client.query("DELETE FROM USER_ACCOUNT"),
+        db.client.query("DELETE FROM USER_GROUP"),
         db.client.query("DELETE FROM TRANSACTION"),
         db.client.query("UPDATE USER_ACCOUNT SET NET = 0;"),
         db.client.query("DELETE FROM GROUP_MEMBERSHIP")])
-        // db.client.query("DELETE FROM USER_ACCOUNT"),
-        // db.client.query("DELETE FROM USER_GROUP")])
-      // .then(() => {
-      //   Promise.all([newUserStream(), newGroupStream()])
-      // })
+      .then(() => { 
+        Promise.all([
+          newUserStream(), newGroupStream()
+        ])
+      })
       .then(() => {
         Promise.all(genGroupMembers());
       })
