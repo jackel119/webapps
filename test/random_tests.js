@@ -84,8 +84,8 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
     Promise.all([
         db.client.query("DELETE FROM TRANSACTION"),
         db.client.query("UPDATE USER_ACCOUNT SET NET = 0;"),
-        db.client.query("DELETE FROM GROUP_MEMBERSHIP"),
-        db.client.query("DELETE FROM USER_GROUP")])
+        db.client.query("DELETE FROM GROUP_MEMBERSHIP")])
+        //db.client.query("DELETE FROM USER_GROUP")])
       .then(() => { 
         Promise.all([
           newUserStream(), newGroupStream()
@@ -102,23 +102,15 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
 
   }); 
 
-  it('Selects random user account', () => {
+  it('Selects random user account', async () => {
     return db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => {
-        console.log(res);
-        assert.equal(res.rowCount, 1);
-        done();
-      });
+      ORDER BY RANDOM() LIMIT 1;').then(res => assert(res.rowCount == 1));
 
   });
 
-  it('Selects random groups', (done) => {
+  it('Selects random groups', () => {
     db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;', res => {
-        console.log(res);
-        assert.equal(res.rowCount, 1);
-        done();
-      });
+      ORDER BY RANDOM() LIMIT 1;', res => assert(res.rowCount == 1));
   });
 
   

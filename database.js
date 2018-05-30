@@ -1,10 +1,10 @@
-const { Client }      = require('pg');
+const { Client, Pool}      = require('pg');
 const uuid            = require('uuid/v1');
 
 
 var database = function(db_name) {
 
-  this.client  =  new Client({
+  this.client  =  new Pool({
     database: db_name
   });
   this.db_name = db_name;
