@@ -1,60 +1,43 @@
 language: node_js
+addons: 
+  ssh_known_hosts: ubuntu@ec2-54-237-140-224.compute-1.amazonaws.com
 node_js:
-  - "8"
-
-services: 
-  - postgresql
-
+- '8'
+services:
+- postgresql
 dist: trusty
-
 before_script:
-  - psql -c "CREATE DATABASE \"webapp-testing\";" -U postgres
-  - psql -d webapp-testing -c 'CREATE TABLE USER_ACCOUNT(
-              UID UUID PRIMARY KEY NOT NULL,
-              FIRST_NAME TEXT NOT NULL,
-              LAST_NAME TEXT,
-              EMAIL TEXT NOT NULL UNIQUE,
-              PASSWORD_SALT INT NOT NULL,
-              PASSWORD_HASH CHAR(64),
-              NET NUMERIC NOT NULL,
-              FB_ID TEXT
-            );' -U postgres
-  - psql -d webapp-testing -c 'CREATE TABLE USER_GROUP(
-              GID UUID PRIMARY KEY NOT NULL,
-              GNAME TEXT NOT NULL,
-              CREATED TIMESTAMP NOT NULL
-              );' -U postgres
-  - psql -d webapp-testing -c 'CREATE TABLE GROUP_MEMBERSHIP (
-               GID UUID REFERENCES USER_GROUP (GID),
-               UID UUID REFERENCES USER_ACCOUNT (UID)
-             );' -U postgres
-  - psql -d webapp-testing -c 'CREATE TABLE TRANSACTION (
-              TXID UUID PRIMARY KEY NOT NULL,
-              FROM_USER UUID REFERENCES USER_ACCOUNT (UID),
-              TO_USER UUID REFERENCES USER_ACCOUNT (UID),
-              CURRENCY INT NOT NULL,
-              AMOUNT NUMERIC NOT NULL,
-              TIME TIMESTAMP NOT NULL,
-              DESCRIPTION TEXT,
-              STATUS INT NOT NULL,
-              GID UUID REFERENCES USER_GROUP (GID)
-            );' -U postgres
-  - psql -d webapp-testing -c 'CREATE OR REPLACE FUNCTION updateNet()
-              RETURNS TRIGGER AS
-            $BODY$
-            DECLARE 
-            to_net INTEGER;
-            from_net INTEGER;
-            BEGIN
-              SELECT net INTO to_net FROM USER_ACCOUNT WHERE UID = NEW.TO_USER;
-              SELECT net INTO from_net FROM USER_ACCOUNT WHERE UID = NEW.FROM_USER;
-              UPDATE USER_ACCOUNT SET net = to_net + NEW.AMOUNT WHERE UID = NEW.TO_USER;
-              UPDATE USER_ACCOUNT SET net = from_net - NEW.AMOUNT WHERE UID = NEW.FROM_USER;
-              RETURN NEW;
-            END;
-            $BODY$
-            LANGUAGE plpgsql;' -U postgres
-  - psql -d webapp-testing -c 'CREATE TRIGGER updateNetTrigger
-            AFTER INSERT ON TRANSACTION
-            FOR EACH ROW
-            EXECUTE PROCEDURE updateNet();' -U postgres
+- psql -c "CREATE DATABASE \"webapp-testing\";" -U postgres
+- psql -d webapp-testing -c 'CREATE TABLE USER_ACCOUNT( UID UUID PRIMARY KEY NOT NULL,
+  FIRST_NAME TEXT NOT NULL, LAST_NAME TEXT, EMAIL TEXT NOT NULL UNIQUE, PASSWORD_SALT
+  INT NOT NULL, PASSWORD_HASH CHAR(64), NET NUMERIC NOT NULL, FB_ID TEXT );' -U postgres
+- psql -d webapp-testing -c 'CREATE TABLE USER_GROUP( GID UUID PRIMARY KEY NOT NULL,
+  GNAME TEXT NOT NULL, CREATED TIMESTAMP NOT NULL );' -U postgres
+- psql -d webapp-testing -c 'CREATE TABLE GROUP_MEMBERSHIP ( GID UUID REFERENCES USER_GROUP
+  (GID), UID UUID REFERENCES USER_ACCOUNT (UID) );' -U postgres
+- psql -d webapp-testing -c 'CREATE TABLE TRANSACTION ( TXID UUID PRIMARY KEY NOT
+  NULL, FROM_USER UUID REFERENCES USER_ACCOUNT (UID), TO_USER UUID REFERENCES USER_ACCOUNT
+  (UID), CURRENCY INT NOT NULL, AMOUNT NUMERIC NOT NULL, TIME TIMESTAMP NOT NULL,
+  DESCRIPTION TEXT, STATUS INT NOT NULL, GID UUID REFERENCES USER_GROUP (GID) );'
+  -U postgres
+- psql -d webapp-testing -c 'CREATE OR REPLACE FUNCTION updateNet() RETURNS TRIGGER
+  AS $BODY$ DECLARE to_net INTEGER; from_net INTEGER; BEGIN SELECT net INTO to_net
+  FROM USER_ACCOUNT WHERE UID = NEW.TO_USER; SELECT net INTO from_net FROM USER_ACCOUNT
+  WHERE UID = NEW.FROM_USER; UPDATE USER_ACCOUNT SET net = to_net + NEW.AMOUNT WHERE
+  UID = NEW.TO_USER; UPDATE USER_ACCOUNT SET net = from_net - NEW.AMOUNT WHERE UID
+  = NEW.FROM_USER; RETURN NEW; END; $BODY$ LANGUAGE plpgsql;' -U postgres
+- psql -d webapp-testing -c 'CREATE TRIGGER updateNetTrigger AFTER INSERT ON TRANSACTION
+  FOR EACH ROW EXECUTE PROCEDURE updateNet();' -U postgres
+before_install:
+- openssl aes-256-cbc -K $encrypted_333134d9b343_key -iv $encrypted_333134d9b343_iv
+  -in deploy_rsa.enc -out /tmp/deploy_rsa -d
+- eval "$(ssh-agent -s)"
+- chmod 600 /tmp/deploy_rsa
+- ssh-add /tmp/deploy_rsa
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: rsync -r --delete-after --quiet $TRAVIS_BUILD_DIR/ ubuntu@ec2-54-237-140-224.compute-1.amazonaws.com:~/webapps-backend
+  on:
+    branch: master
