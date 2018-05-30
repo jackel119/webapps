@@ -22,6 +22,14 @@ const db = new pg.Database('webapp-testing');
 //-------------------------------------
 app.use(express.static('public'));
 
+// HTTP Server Redirect to HTTPS
+
+var http = express.createServer();
+http.get('*', function(req, res) {  
+    res.redirect('https://' + req.headers.host + req.url);
+});
+
+// HTTPS Server
 var server = https.createServer({
   key : fs.readFileSync('/etc/letsencrypt/live/jackpordi.com/privkey.pem'),
   cert: fs.readFileSync('/etc/letsencrypt/live/jackpordi.com/fullchain.pem')
