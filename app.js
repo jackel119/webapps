@@ -12,6 +12,7 @@ var pg                =  require('./database');
 var app               =  express();
 var GEX               =  require('greenlock-express');
 var https             =  require('https');
+var http              =  require('http');
 
 // Database Setup
 const db = new pg.Database('webapp-testing');
@@ -21,13 +22,21 @@ const db = new pg.Database('webapp-testing');
 //--------EXPRESS SERVER---------------
 //-------------------------------------
 app.use(express.static('public'));
+app.all('*', ensureSecure);
 
 // HTTP Server Redirect to HTTPS
 
-var http = express.createServer();
-http.get('*', function(req, res) {  
-    res.redirect('https://' + req.headers.host + req.url);
-});
+var httpServer = http.createServer(app).listen(80);
+
+function ensureSecure(req, res, next){
+  if(req.secure){
+    // OK, continue
+    return next();
+  }
+  // handle port numbers if you need non defaults
+  // res.redirect('https://' + req.host + req.url); // express 3.x
+  res.redirect('https://' + req.hostname + req.url); // express 4.x
+}
 
 // HTTPS Server
 var server = https.createServer({
