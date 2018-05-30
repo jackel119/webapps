@@ -1,3 +1,58 @@
 language: node_js
 node_js:
   - "8"
+
+services: 
+  - postgresql
+
+before_script:
+  - psql -c 'create database webapp-testing;' -U postgres
+  - psql -c 'CREATE TABLE USER_ACCOUNT(
+              UID UUID PRIMARY KEY NOT NULL,
+              FIRST_NAME TEXT NOT NULL,
+              LAST_NAME TEXT,
+              EMAIL TEXT NOT NULL UNIQUE,
+              PASSWORD_SALT INT NOT NULL,
+              PASSWORD_HASH CHAR(64),
+              NET NUMERIC NOT NULL,
+              FB_ID TEXT
+            );'
+  - psql -c 'CREATE TABLE USER_GROUP(
+              GID UUID PRIMARY KEY NOT NULL,
+              GNAME TEXT NOT NULL,
+              CREATED TIMESTAMP NOT NULL
+              );'
+  - psql -c 'CREATE TABLE GROUP_MEMBERSHIP (
+               GID UUID REFERENCES USER_GROUP (GID),
+               UID UUID REFERENCES USER_ACCOUNT (UID)
+             );'
+  - psql -c 'CREATE TABLE TRANSACTION (
+              TXID UUID PRIMARY KEY NOT NULL,
+              FROM_USER UUID REFERENCES USER_ACCOUNT (UID),
+              TO_USER UUID REFERENCES USER_ACCOUNT (UID),
+              CURRENCY INT NOT NULL,
+              AMOUNT NUMERIC NOT NULL,
+              TIME TIMESTAMP NOT NULL,
+              DESCRIPTION TEXT,
+              STATUS INT NOT NULL,
+              GID UUID REFERENCES USER_GROUP (GID)
+            );'
+  - psql -c 'CREATE OR REPLACE FUNCTION updateNet()
+              RETURNS TRIGGER AS
+            $BODY$
+            DECLARE 
+            to_net INTEGER;
+            from_net INTEGER;
+            BEGIN
+              SELECT net INTO to_net FROM USER_ACCOUNT WHERE UID = NEW.TO_USER;
+              SELECT net INTO from_net FROM USER_ACCOUNT WHERE UID = NEW.FROM_USER;
+              UPDATE USER_ACCOUNT SET net = to_net + NEW.AMOUNT WHERE UID = NEW.TO_USER;
+              UPDATE USER_ACCOUNT SET net = from_net - NEW.AMOUNT WHERE UID = NEW.FROM_USER;
+              RETURN NEW;
+            END;
+            $BODY$
+            LANGUAGE plpgsql;'
+  - psql -c 'CREATE TRIGGER updateNetTrigger
+            AFTER INSERT ON TRANSACTION
+            FOR EACH ROW
+            EXECUTE PROCEDURE updateNet();'
