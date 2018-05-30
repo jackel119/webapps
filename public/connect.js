@@ -1,4 +1,4 @@
-var socket = io.connect("http://www.jackpordi.com:443");
+var socket = io.connect("https://www.jackpordi.com", {secure:true});
 
 var gid = document.getElementById('gid');
     button = document.getElementById('request');
