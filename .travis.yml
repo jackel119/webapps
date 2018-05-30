@@ -38,6 +38,6 @@ before_install:
 deploy:
   provider: script
   skip_cleanup: true
-  script: rsync -r --delete-after --quiet $TRAVIS_BUILD_DIR/ ubuntu@ec2-54-237-140-224.compute-1.amazonaws.com:~/webapps-backend
+  script: rsync -r --quiet $TRAVIS_BUILD_DIR/ ubuntu@ec2-54-237-140-224.compute-1.amazonaws.com:~/webapps-backend
   on:
     branch: master
