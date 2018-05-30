@@ -14,10 +14,8 @@ var GEX               =  require('greenlock-express');
 var https             =  require('https');
 var http              =  require('http');
 
-var httpRedirect      =  require('express-http-to-https');
 // Database Setup
 const db = new pg.Database('webapp-testing');
-
 
 //-------------------------------------
 //--------EXPRESS SERVER---------------
@@ -31,7 +29,6 @@ app.use(function(req, res, next) {
   res.redirect("https://" + req.headers.host + req.url);
 });
 app.use(express.static('public'));
-// app.use(httpRedirect.redirectToHTTPS());
 
 // HTTP Server Redirect to HTTPS
 
