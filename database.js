@@ -171,7 +171,7 @@ module.exports = {
   Database : database
 };
 
-// var db = new database('webapp-testing');
+var db = new database('webapp-testing');
 //db.newUser("Iulia", "Ivana", "imi17@gmail.com");
 db.newUser("Jack", "Pordi", "jackel119@gmail.com");
 pw_hash = sha512('david');
