@@ -161,7 +161,7 @@ var database = function(db_name) {
   this.verifyLogin = (email, password) => {
     var pw_hash = sha256(password);
     return this.client.query("SELECT * FROM USER_ACCOUNT WHERE \n \
-      EMAIL = $1 AND PASSWORD_HASH = $2;", [email, pw_hash]);
+      EMAIL = $1 AND PASSWORD_HASH = $2;", [email, pw_hash]).then(res => res.rowCount > 0);
   };
 
 
@@ -171,12 +171,12 @@ module.exports = {
   Database : database
 };
 
-var db = new database('webapp-testing');
 //db.newUser("Iulia", "Ivana", "imi17@gmail.com");
-db.newUser("Jack", "Pordi", "jackel119@gmail.com");
-pw_hash = sha256('david');
-db.client.query('UPDATE USER_ACCOUNT SET PASSWORD_HASH = $1 WHERE EMAIL = $2;',
-  [pw_hash, 'jackel119@gmail.com']);
+// var db = new database('webapp-testing');
+// db.newUser("Jack", "Pordi", "jackel119@gmail.com");
+// pw_hash = sha256('david');
+// db.client.query('UPDATE USER_ACCOUNT SET PASSWORD_HASH = $1 WHERE EMAIL = $2;',
+  // [pw_hash, 'jackel119@gmail.com']);
 //db.newUser("Dylan", "Ma", "mazicong@gmail.com");
 //db.newGroup("Peng you men");
 //db.groupAddMember("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6");
