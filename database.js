@@ -70,6 +70,13 @@ var database = function(db_name) {
       WHERE EMAIL = $1 \;", [email]);
   };
   
+  // Gets UID by email, returns a PROMISE
+  // NOT SAFE, can return 0 rows if email not in db
+  this.getUserByEmail = (email) => {
+    return this.client.query("SELECT (UID) FROM USER_ACCOUNT \n \
+      WHERE EMAIL = $1 \;", [email]);
+  };
+
   // All the groups a user account belongs to
   // Query from uid
   // Returns a PROMISE
@@ -152,16 +159,26 @@ var database = function(db_name) {
     });
   };
 
+  // Associates FB ID with a user
   this.associateFB_email = (email, id) => {
      return this.client.query("UPDATE USER_ACCOUNT \n \
       SET FB_ID = $1 \n \
       WHERE EMAIL = $2", [id, email]);
   };
 
+  // Verifies whether a user is in the database with that password or not
+  // Returns an object of the format :
+  // { result: bool, user_id : string (if exists)}
   this.verifyLogin = (email, password) => {
     var pw_hash = sha256(password);
     return this.client.query("SELECT * FROM USER_ACCOUNT WHERE \n \
-      EMAIL = $1 AND PASSWORD_HASH = $2;", [email, pw_hash]).then(res => res.rowCount > 0);
+      EMAIL = $1 AND PASSWORD_HASH = $2;", [email, pw_hash]).then(res => {
+        if (res.rowCount == 0) {
+          return { result: false};
+        } else {
+          return {result: true, uid: res.rows[0].uid};
+        }
+      });
   };
 
 
@@ -173,10 +190,11 @@ module.exports = {
 
 //db.newUser("Iulia", "Ivana", "imi17@gmail.com");
 // var db = new database('webapp-testing');
+// db.verifyLogin('jackel119@gmail.com', 'david').then(res => console.log(res));
 // db.newUser("Jack", "Pordi", "jackel119@gmail.com");
 // pw_hash = sha256('david');
 // db.client.query('UPDATE USER_ACCOUNT SET PASSWORD_HASH = $1 WHERE EMAIL = $2;',
-  // [pw_hash, 'jackel119@gmail.com']);
+  //[pw_hash, 'jackel119@gmail.com']);
 //db.newUser("Dylan", "Ma", "mazicong@gmail.com");
 //db.newGroup("Peng you men");
 //db.groupAddMember("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6");

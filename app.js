@@ -22,6 +22,7 @@ const db = new pg.Database('webapp-testing');
 //-------------------------------------
 
 app.enable('trust proxy');
+// Enforce HTTPS
 app.use(function(req, res, next) {
   if (req.secure){
     return next();
@@ -59,11 +60,39 @@ var server = https.createServer({
 
 var io = socket(server);
 
+var authorizedClients = {};
+
 io.on('connection', (socket) => {
   console.log('Made socket connection with socket:', socket.id);
 
   socket.on('disconnect', (reason) => {
     console.log('Socket', socket.id, 'has disconnected');
+    authorizedClients[socket.id] = null;
+  });
+
+  socket.authenticated = false;
+
+  // Placeholder Authentication
+  socket.on('authentication', (credentials) => {
+    db.verifyLogin(credentials.username, credentials.password).then( res => {
+        socket.emit('authResult', res);
+        if (res.result) {
+          // Add socket to authorized list
+          authorizedClients[socket.id] = res.uid;
+        }
+    })
+  });
+
+  socket.on('requestTXs', () => {
+    var uid = authorizedClients[socket.id];
+    if (uid != undefined) {
+      Promise.all([ db.txsTo(uid), db.txsFron(uid)])
+        .then(res => socket.emit('allTransactions', {
+          to:  res[0].rows, from: res[1].rows
+        }))
+    } else {
+      socket.emit('unauthenticatedRequest');
+    }
   });
 
   socket.on('query', (query) => {
@@ -76,6 +105,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Test events, TODO: Remove later
   socket.on('test-packet', (data) => {
     console.log(data.message);
   });
