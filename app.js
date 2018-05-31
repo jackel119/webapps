@@ -67,7 +67,7 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', (reason) => {
     console.log('Socket', socket.id, 'has disconnected');
-    authorizedClients[socket.id] = null;
+    delete authorizedClients[socket.id];
   });
 
   socket.authenticated = false;
@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
   socket.on('requestTXs', () => {
     var uid = authorizedClients[socket.id];
     if (uid != undefined) {
-      Promise.all([ db.txsTo(uid), db.txsFron(uid)])
+      Promise.all([ db.txsTo(uid), db.txsFrom(uid)])
         .then(res => socket.emit('allTransactions', {
           to:  res[0].rows, from: res[1].rows
         }))
