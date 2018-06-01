@@ -6,7 +6,7 @@ socket.on('connect', () => {
 
   socket.emit('authentication', {
     username: 'jackel119@gmail.com',
-    password: 'david'
+    password: 'dylan'
   });
 
   socket.on('authResult', res => {
