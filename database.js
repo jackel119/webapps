@@ -183,7 +183,7 @@ var database = function(db_name) {
 
   this.getUsersByUID = (uidList) => {
     return this.client.query('SELECT * FROM USER_ACCOUNT WHERE \n \
-      UID IN ($1)', [uidList.join(',')]);
+      UID = ANY($1)', [uidList]);
   };
 
 

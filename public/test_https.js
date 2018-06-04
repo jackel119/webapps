@@ -10,7 +10,7 @@ socket.on('connect', () => {
   // #2 Request to authenticate with the backend by sending username/password
   socket.emit('authentication', {
     username: 'jackel119@gmail.com',
-    password: 'dylan'
+    password: 'david'
   });
 
   // #3 Server responds back with an 'authResult' event
@@ -22,6 +22,17 @@ socket.on('connect', () => {
 
   // #4 When we receive transactions, print them
   socket.on('allTransactions', res => {
+    console.log('Received Transactions');
+    var list = [];
+    for (var tx of res.from) {
+      console.log(tx);
+      list.push(tx.to_user);
+    }
+    console.log(list);
+    socket.emit('getUsersByUID', list);
+  });
+
+  socket.on('users', res => {
     console.log(res);
   });
 
