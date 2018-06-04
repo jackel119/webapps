@@ -25,7 +25,7 @@ socket.on('connect', () => {
     console.log('Received Transactions');
     var list = [];
     for (var tx of res.from) {
-      console.log(tx);
+      // console.log(tx);
       list.push(tx.to_user);
     }
     console.log(list);
@@ -34,6 +34,12 @@ socket.on('connect', () => {
 
   socket.on('users', res => {
     console.log(res);
+    var map = {};
+    for (var user of res.rows) {
+      map[user.uid] = user;
+      delete user.uid;
+    }
+    console.log(map);
   });
 
   // If, for any reason, the server tells us we are unauthenticated,

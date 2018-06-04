@@ -183,7 +183,14 @@ var database = function(db_name) {
 
   this.getUsersByUID = (uidList) => {
     return this.client.query('SELECT * FROM USER_ACCOUNT WHERE \n \
-      UID = ANY($1)', [uidList]);
+      UID = ANY($1)', [uidList]).then(res => {
+        var map = {};
+        for (var user of res.rows) {
+          map[user.uid] = user;
+          delete user.uid;
+        }
+        return map;
+      });
   };
 
 
