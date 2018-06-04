@@ -10,7 +10,7 @@ socket.on('connect', () => {
   // #2 Request to authenticate with the backend by sending username/password
   socket.emit('authentication', {
     username: 'jackel119@gmail.com',
-    password: 'david'
+    password: 'dylan'
   });
 
   // #3 Server responds back with an 'authResult' event

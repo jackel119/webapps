@@ -80,7 +80,7 @@ io.on('connection', (socket) => {
           // If true, add socket to authorized list
           authorizedClients[socket.id] = res.uid;
         }
-    })
+    });
   });
 
   // Sends transactions to users, of the form
@@ -91,7 +91,7 @@ io.on('connection', (socket) => {
       Promise.all([ db.txsTo(uid), db.txsFrom(uid)])
         .then(res => socket.emit('allTransactions', {
           to:  res[0].rows, from: res[1].rows
-        }))
+        }));
     } else {
       // If unauthenticated, then tell the client so
       socket.emit('unauthenticatedRequest');
@@ -103,7 +103,9 @@ io.on('connection', (socket) => {
   socket.on('getUsersByUID', uidList => {
     var uid = authorizedClients[socket.id];
     if (uid != undefined) { // Check use is authenticated
-      // TODO: use database to create said map
+      db.getUsersByUID(uidList).then( res => {
+        socket.emit('users', res);
+      });
     } else {
       // If unauthenticated, then tell the client so
       socket.emit('unauthenticatedRequest');
