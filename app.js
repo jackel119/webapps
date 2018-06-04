@@ -173,6 +173,8 @@ io.on('connection', (socket) => {
   //   groupID: gid
   // }
   socket.on('createTX', transaction => {
+    console.log("Receiving transaction from", socket.id);
+    console.log(transaction);
     var uid = authorizedClients[socket.id];
     if (uid != undefined) {
       if (transaction.to == uid || transaction.from == uid) {
