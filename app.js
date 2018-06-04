@@ -60,25 +60,76 @@ var server = https.createServer({
 
 var io = socket(server);
 
-// Client sockets that have been authorized
+// Client sockets that have been authorized 
+// authorizedClients[socket.id] = uid
 var authorizedClients = {};
+
+// Map of users to sockets
+// uuid -> Sets of Socket IDs
+var userToSockets = {};
+
+// Users that need to be informed of new transactions
+// uuid -> {event, data};
+var usersToBeInformed = {};
 
 io.on('connection', (socket) => {
   console.log('Made socket connection with socket:', socket.id);
 
   socket.on('disconnect', (reason) => {
     console.log('Socket', socket.id, 'has disconnected');
-    delete authorizedClients[socket.id];
+    if (authorizedClients[socket.id] != undefined) {
+      userToSockets[authorizedClients[socket.id]].delete(socket.id);
+      delete authorizedClients[socket.id];
+    }
   });
 
-  // Placeholder Authentication
+  // Informs User of a certain event
+  // If user is not active, then 'remmebers' such so that user is informed
+  // after next login
+  var informUser = (uuid, event, data) => {
+    var socketIDs = userToSockets[uuid];
+    if (socketIDs != undefined) {
+      // If user is connected, notify them
+      for (var sid of socketIDs) {
+        io.to(sid).emit(event, data);
+      }
+    } else {
+      var user_bucket = usersToBeInformed[uuid];
+      if (user_bucket == undefined) {
+        usersToBeInformed[uuid] = new Set().add({event: event, data:data}) ;
+      } else {
+        usersToBeInformed[uuid].add({event: event, data:data});
+      }
+    }
+  };
+
+  // Catches up a single socket
+  // There are still edge cases around a user having multiple clients
+  var catchUpUser = () => {
+    if (usersToBeInformed[authorizedClients[socket.id]] != undefined) {
+      for (var events of usersToBeInformed[authorizedClients[socket.id]]) {
+        socket.emit(events.event, events.data);
+      }
+      delete usersToBeInformed[authorizedClients[socket.id]];
+    }
+  };
+
+  // Basic username-password Authentication
   socket.on('authentication', (credentials) => {
+    console.log(socket.id, 'has authenticated as', credentials.username);
     db.verifyLogin(credentials.username, credentials.password).then( res => {
         // Emit result of authentication, either true with uid, or false
         socket.emit('authResult', res);
         if (res.result) {
           // If true, add socket to authorized list
           authorizedClients[socket.id] = res.uid;
+          // Add to user to sockets map
+          if (userToSockets[res.uid] == undefined) {
+            userToSockets[res.uid] = new Set().add(socket.id);
+          } else {
+            userToSockets[res.uid].add(socket.id);
+          }
+          catchUpUser();
         }
     });
   });
@@ -106,6 +157,39 @@ io.on('connection', (socket) => {
       db.getUsersByUID(uidList).then( res => {
         socket.emit('users', res);
       });
+    } else {
+      // If unauthenticated, then tell the client so
+      socket.emit('unauthenticatedRequest');
+    }
+  });
+
+  // Creating a new transaction.
+  // transaction = {
+  //   to : uid,
+  //   from: uid,
+  //   amount: number,
+  //   currency: (0 for GBP),
+  //   description: text,
+  //   groupID: gid
+  // }
+  socket.on('createTX', transaction => {
+    var uid = authorizedClients[socket.id];
+    if (uid != undefined) {
+      if (transaction.to == uid || transaction.from == uid) {
+        // Socket user is indeed sender/receiver of transaction
+        db.newTX(transaction.to, transaction.from, transaction.amount,
+          transaction.currency, transaction.text, transaction.groupID)
+          .then(transaction => {
+            // Emit new transactions to both users
+               informUser(transaction.to,   'newTransaction', transaction);
+               informUser(transaction.from, 'newTransaction', transaction);
+          }); 
+      } else {
+        // Socket user is NOT sender/receiver of transaction
+        socket.emit('invalidCreation', {
+          message: 'You can only create transactions to and from yourself!'
+        });
+      }
     } else {
       // If unauthenticated, then tell the client so
       socket.emit('unauthenticatedRequest');
