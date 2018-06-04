@@ -54,12 +54,23 @@ var database = function(db_name) {
 
   // Creates a new transaction
   // SAFE: Never fails
-  // TODO: Needs to return txid.
   this.newTX = (to, from, howMuch, currency, description, groupID) => {
-    var newUID = uuid(); 
+    var newTXID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
     this.client.query("INSERT INTO TRANSACTION \n \
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newUID, to, from, currency, howMuch, dateCreated, description, 0, groupID]).then( () =>  newUID );
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newTXID, to, from, currency, howMuch, dateCreated, description, 0, groupID]).then(() =>  {
+        return {
+          txid: newTXID,
+          from_user : from,
+          to_user: to,
+          currency: currency,
+          amount: howMuch,
+          time: dateCreated,
+          description: description,
+          status: 0,
+          gid: groupID
+        };
+      });
   };
 
 
