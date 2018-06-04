@@ -60,6 +60,7 @@ var server = https.createServer({
 
 var io = socket(server);
 
+// Client sockets that have been authorized
 var authorizedClients = {};
 
 io.on('connection', (socket) => {
@@ -70,40 +71,47 @@ io.on('connection', (socket) => {
     delete authorizedClients[socket.id];
   });
 
-  socket.authenticated = false;
-
   // Placeholder Authentication
   socket.on('authentication', (credentials) => {
     db.verifyLogin(credentials.username, credentials.password).then( res => {
+        // Emit result of authentication, either true with uid, or false
         socket.emit('authResult', res);
         if (res.result) {
-          // Add socket to authorized list
+          // If true, add socket to authorized list
           authorizedClients[socket.id] = res.uid;
         }
-    })
+    });
   });
 
+  // Sends transactions to users, of the form
+  // { to: [transactions to that user] , from: [transactions from]}
   socket.on('requestTXs', () => {
     var uid = authorizedClients[socket.id];
-    if (uid != undefined) {
+    if (uid != undefined) { // Check user is authenticated
       Promise.all([ db.txsTo(uid), db.txsFrom(uid)])
         .then(res => socket.emit('allTransactions', {
           to:  res[0].rows, from: res[1].rows
-        }))
+        }));
     } else {
+      // If unauthenticated, then tell the client so
       socket.emit('unauthenticatedRequest');
     }
   });
 
-  socket.on('query', (query) => {
-    console.log("Data UID:", query.uid);
-    db.client.query("SELECT * FROM \"USER\" WHERE UID = $1\;", [query.uid], (err, res) => {
-      console.log(res);
-      socket.emit('message', {
-        message: res.rows[0].first_name
+  // Client wants user details (names), gives UIDs as a list.
+  // We want to return a map (JS Object) of those UIDs to users.
+  socket.on('getUsersByUID', uidList => {
+    var uid = authorizedClients[socket.id];
+    if (uid != undefined) { // Check use is authenticated
+      db.getUsersByUID(uidList).then( res => {
+        socket.emit('users', res);
       });
-    });
+    } else {
+      // If unauthenticated, then tell the client so
+      socket.emit('unauthenticatedRequest');
+    }
   });
+
 
   // Test events, TODO: Remove later
   socket.on('test-packet', (data) => {
