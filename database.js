@@ -187,7 +187,7 @@ var database = function(db_name) {
         if (res.rowCount == 0) {
           return { result: false};
         } else {
-          return {result: true, uid: res.rows[0].uid};
+          return {result: true, data: res.rows[0]};
         }
       });
   };

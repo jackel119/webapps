@@ -124,10 +124,10 @@ io.on('connection', (socket) => {
           // If true, add socket to authorized list
           authorizedClients[socket.id] = res.uid;
           // Add to user to sockets map
-          if (userToSockets[res.uid] == undefined) {
-            userToSockets[res.uid] = new Set().add(socket.id);
+          if (userToSockets[res.data.uid] == undefined) {
+            userToSockets[res.data.uid] = new Set().add(socket.id);
           } else {
-            userToSockets[res.uid].add(socket.id);
+            userToSockets[res.data.uid].add(socket.id);
           }
           catchUpUser();
         }
