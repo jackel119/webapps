@@ -87,17 +87,21 @@ io.on('connection', (socket) => {
   // If user is not active, then 'remmebers' such so that user is informed
   // after next login
   var informUser = (uuid, event, data) => {
+    console.log('User', uuid, 'needs to be informed, checking status');
     var socketIDs = userToSockets[uuid];
-    if (socketIDs != undefined) {
+    if (socketIDs != undefined) { // User is connected
+      console.log('User', uuid, 'is connected to sockets', socketIDs);
       // If user is connected, notify them
       for (var sid of socketIDs) {
+        console.log('Emitting data to socket ', sid);
         io.to(sid).emit(event, data);
       }
     } else {
+      console.log('User', uuid, 'is not connected to any sockets');
       var user_bucket = usersToBeInformed[uuid];
-      if (user_bucket == undefined) {
+      if (user_bucket == undefined) { // User does not have a bucket, create one
         usersToBeInformed[uuid] = new Set().add({event: event, data:data}) ;
-      } else {
+      } else { // User has a bucket, just add to it
         usersToBeInformed[uuid].add({event: event, data:data});
       }
     }
