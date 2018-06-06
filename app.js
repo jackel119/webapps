@@ -143,6 +143,7 @@ io.on('connection', (socket) => {
   socket.on('requestTXs', () => {
     var uid = authorizedClients[socket.id];
     if (uid != undefined) { // Check user is authenticated
+      console.log('User uid has asked for all transactions');
       Promise.all([ db.txsTo(uid), db.txsFrom(uid)])
         .then(res => socket.emit('allTransactions', {
           to:  res[0].rows, from: res[1].rows
