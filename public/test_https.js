@@ -17,6 +17,7 @@ socket.on('connect', () => {
   socket.on('authResult', res => {
     console.log(res);
     // We have authenticated, so therefore ask for transactions
+    console.log('Requesting Transactions now!');
     socket.emit('requestTXs');
   });
 

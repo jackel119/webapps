@@ -148,6 +148,7 @@ io.on('connection', (socket) => {
         .then(res => socket.emit('allTransactions', res.rows));
     } else {
       // If unauthenticated, then tell the client so
+      console.log('Unauthenticated request from user', uid);
       socket.emit('unauthenticatedRequest');
     }
   });
