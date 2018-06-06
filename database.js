@@ -142,6 +142,11 @@ var database = function(db_name) {
     return this.client.query("SELECT * FROM TRANSACTION WHERE FROM_USER = $1;", [uid]);
   };
 
+  this.txsWith = (uid) => {
+    return this.client.query("SELECT * FROM TRANSACTION WHERE \n \
+      FROM_USER = $1 OR TO_USER = $1;", [uid]);
+  };
+
   // All group transactions
   // Returns a PROMISE
   this.groupTXs = (gid) => {
