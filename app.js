@@ -126,7 +126,7 @@ io.on('connection', (socket) => {
         socket.emit('authResult', res);
         if (res.result) {
           // If true, add socket to authorized list
-          authorizedClients[socket.id] = res.uid;
+          authorizedClients[socket.id] = res.data.uid;
           // Add to user to sockets map
           if (userToSockets[res.data.uid] == undefined) {
             userToSockets[res.data.uid] = new Set().add(socket.id);

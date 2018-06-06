@@ -25,8 +25,8 @@ socket.on('connect', () => {
   socket.on('allTransactions', res => {
     console.log('Received Transactions');
     var list = [];
-    for (var tx of res.from) {
-      // console.log(tx);
+    for (var tx of res) {
+      console.log(tx);
       list.push(tx.to_user);
     }
     console.log(list);
@@ -35,12 +35,12 @@ socket.on('connect', () => {
 
   socket.on('users', res => {
     console.log(res);
-    var map = {};
-    for (var user of res.rows) {
-      map[user.uid] = user;
-      delete user.uid;
-    }
-    console.log(map);
+    // var map = {};
+    // for (var user of res.rows) {
+    //   map[user.uid] = user;
+    //   delete user.uid;
+    // }
+    // console.log(map);
   });
 
   socket.on('users', res => {
