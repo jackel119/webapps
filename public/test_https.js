@@ -24,23 +24,14 @@ socket.on('connect', () => {
   // #4 When we receive transactions, print them
   socket.on('allTransactions', res => {
     console.log('Received Transactions');
-    var list = [];
-    for (var tx of res) {
-      console.log(tx);
-      list.push(tx.to_user);
-    }
-    console.log(list);
-    socket.emit('getUsersByUID', list);
-  });
-
-  socket.on('users', res => {
-    console.log(res);
-    // var map = {};
-    // for (var user of res.rows) {
-    //   map[user.uid] = user;
-    //   delete user.uid;
+    // var list = [];
+    // for (var tx of res.from) {
+    //   // console.log(tx);
+    //   list.push(tx.to_user);
     // }
-    // console.log(map);
+    // console.log(list);
+    // socket.emit('getUsersByUID', list);
+    console.log(res);
   });
 
   socket.on('users', res => {

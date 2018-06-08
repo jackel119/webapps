@@ -190,6 +190,7 @@ io.on('connection', (socket) => {
                informUser(transaction.to,   'newTransaction', transaction);
                informUser(transaction.from, 'newTransaction', transaction);
           }); 
+          .then(res => socket.emit(res)); // Emit new TXID
       } else {
         // Socket user is NOT sender/receiver of transaction
         socket.emit('invalidCreation', {
