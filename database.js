@@ -13,10 +13,12 @@ var database = function(db_name) {
 
   // Creates a new user
   // SAFE (but currently does not return whether a new user has been created)
-  this.newUser = (firstName, lastName, email, fb_id = null) => {
+  this.newUser = (firstName, lastName, email, pw = null, fb_id = null) => {
     var newUID = uuid(); 
+    console.log(pw);
+    var pw_hash = sha256(pw);
     return this.client.query("INSERT INTO USER_ACCOUNT \n \
-    VALUES ( $1, $2, $3, $4, $5, $6, $7, $8)\;", [newUID, firstName, lastName, email, 0, null, 0, fb_id]).catch(() => {});
+    VALUES ( $1, $2, $3, $4, $5, $6, $7, $8)\;", [newUID, firstName, lastName, email, 0, pw_hash, 0, fb_id]).catch(() => {});
   };
 
   // Created a new group with group name
@@ -100,7 +102,7 @@ var database = function(db_name) {
   // All the groups a user account belongs to
   // Query from email
   // Returns a PROMISE
-  this.belongsToGroups = (email) => {
+  this.belongsToGroupsByEmail = (email) => {
     return this.client.query("SELECT USER_GROUP.GID, GNAME, CREATED FROM GROUP_MEMBERSHIP \n \
       JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
       WHERE USER_ACCOUNT.EMAIL = $1\;", [email]);
@@ -222,17 +224,7 @@ module.exports = {
 // db.newUser("Jack", "Pordi", "jackel119@gmail.com");
 // pw_hash = sha256('david');
 // db.client.query('UPDATE USER_ACCOUNT SET PASSWORD_HASH = $1 WHERE EMAIL = $2;',
+// db.belongsToGroupsByEmail('jackel119@gmail.com').then(res => console.log(res));
   //[pw_hash, 'jackel119@gmail.com']);
 //db.newUser("Dylan", "Ma", "mazicong@gmail.com");
 //db.newGroup("Peng you men");
-//db.groupAddMember("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6");
-//db.checkGroupMembership("33807240-5dc0-11e8-b06f-c346f6c59a8a", "e3ccbd70-5dc0-11e8-a74e-176fbf353fa6").then(res => console.log(res));
-
- //db.newTX("8cfaf520-5dde-11e8-b215-990e38a9bed4", "bb2dbd61-5dde-11e8-be4c-d133297a838f", 20, 0, "test tx", null);
-
-// db.getUserByEmail("mazicong@gmail.com").then(res => db.txsTo(res.rows[0].uid).then(res => console.log(res)));
-//db.getUserByEmail("mazicong@gmail.com").then(res => console.log(res.rows[0].uid));
-
-
-// db.getUserByEmail('jackel119@gmail.com').then(res => console.log(res));
-//db.belongsToGroups("15d1dfe0-5dc0-11e8-bf39-c14e2075b722").then(res => console.log(res));

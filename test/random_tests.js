@@ -16,7 +16,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
       fs.createReadStream('./test/fake_users.csv')
         .pipe(csv())
         .on('data', (data) => {
-          promises.push(db.newUser(data[0], data[1], data[2]));
+          promises.push(db.newUser(data[0], data[1], data[2], data[3]));
         })
         .on('finish', (result) => {
           console.log('Added all mock users');
@@ -85,13 +85,13 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
         db.client.query("DELETE FROM TRANSACTION"),
         db.client.query("UPDATE USER_ACCOUNT SET NET = 0;"),
         db.client.query("DELETE FROM GROUP_MEMBERSHIP")])
-        //db.client.query("DELETE FROM USER_GROUP")])
+        // db.client.query("DELETE FROM USER_GROUP")])
       .then(() => { 
-        Promise.all([
-          newUserStream(), newGroupStream()
-        ])
-      })
-      .then(() => {
+     //    Promise.all([
+     //      newUserStream(), newGroupStream()
+     //    ])
+     //  })
+     //  .then(() => {
         Promise.all(genGroupMembers());
       })
       .then(() => {

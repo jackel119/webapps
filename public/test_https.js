@@ -6,6 +6,7 @@ socket.on('connect', () => {
   //After the socket is connected, do the following:
   // #1
   console.log('made connection! Now asking to authenticate');
+  result = {};
 
   // #2 Request to authenticate with the backend by sending username/password
   socket.emit('authentication', {
@@ -23,19 +24,21 @@ socket.on('connect', () => {
 
   // #4 When we receive transactions, print them
   socket.on('allTransactions', res => {
-    console.log('Received Transactions');
-    // var list = [];
-    // for (var tx of res.from) {
-    //   // console.log(tx);
-    //   list.push(tx.to_user);
-    // }
-    // console.log(list);
-    // socket.emit('getUsersByUID', list);
-    console.log(res);
+    console.log('Received Transactions:');
+    result.txs = res;
+    var list = [];
+    for (var tx of res) {
+      // console.log(tx);
+      list.push(tx.to_user);
+    }
+    console.log(list);
+    socket.emit('getUsersByUID', list);
   });
 
   socket.on('users', res => {
-    console.log(res);
+    // console.log(res);
+    result.userMap = res;
+    console.log(result);
     // var map = {};
     // for (var user of res.rows) {
     //   map[user.uid] = user;
