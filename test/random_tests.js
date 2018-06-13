@@ -48,7 +48,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
           LIMIT 1) )').catch((e) => {});
       }
 
-      var l = Array.from(Array(1000), (_,x) => x);
+      var l = Array.from(Array(4000), (_,x) => x);
       var ret = l.map(genGroupMember);
       // console.log('returned promises:', ret);
       return ret;
