@@ -20,7 +20,7 @@ socket.on('connect', () => {
     // We have authenticated, so therefore ask for transactions
     console.log('Authentication Success!');
     console.log('Requesting Transactions now!');
-    socket.emit('requestTXs2');
+    socket.emit('requestTXs');
   });
 
   // #4 When we receive transactions, print them
@@ -34,7 +34,7 @@ socket.on('connect', () => {
     }
     // console.log(list);
     console.log('Now getting users of groups!');
-    socket.emit('getUsersByUID2', list);
+    socket.emit('getUsersByUID', list);
   });
 
   socket.on('users', res => {

@@ -161,7 +161,7 @@ io.on('connection', (socket) => {
   // { to: [transactions to that user] , from: [transactions from]}
   authenticatedCall('requestTXs', () => {
     console.log('User', current_user(), 'has asked for all transactions, sending');
-    db.txsWith(uid)
+    db.txsWith(current_user())
       .then(res => socket.emit('allTransactions', res.rows));
   });
 
@@ -185,7 +185,7 @@ io.on('connection', (socket) => {
   authenticatedCall('createTX', transaction => {
     console.log("Receiving new transaction from", socket.id);
     console.log(transaction);
-    if (transaction.to == uid || transaction.from == uid) {
+    if (transaction.to == current_user() || transaction.from == current_user()) {
       // Socket user is indeed sender/receiver of transaction
       db.newTX(transaction.to, transaction.from, transaction.amount,
         transaction.currency, transaction.description, transaction.groupID)
@@ -199,7 +199,7 @@ io.on('connection', (socket) => {
         .then(res => socket.emit(res)); // Emit new TXID
     } else {
       // Socket user is NOT sender/receiver of transaction
-      console.log('User', uid, 'is not receiver/sender of transaction');
+      console.log('User', current_user(), 'is not receiver/sender of transaction');
       socket.emit('invalidCreation', {
         message: 'You can only create transactions to and from yourself!'
       });
