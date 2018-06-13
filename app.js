@@ -188,7 +188,7 @@ io.on('connection', (socket) => {
       if (transaction.to == uid || transaction.from == uid) {
         // Socket user is indeed sender/receiver of transaction
         db.newTX(transaction.to, transaction.from, transaction.amount,
-          transaction.currency, transaction.text, transaction.groupID)
+          transaction.currency, transaction.description, transaction.groupID)
           .then(transaction => {
             // Emit new transactions to both users
             informUser(transaction.to_user,   'newTransaction', transaction);
