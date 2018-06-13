@@ -191,8 +191,8 @@ io.on('connection', (socket) => {
           transaction.currency, transaction.text, transaction.groupID)
           .then(transaction => {
               // Emit new transactions to both users
-              informUser(transaction.to,   'newTransaction', transaction);
-              informUser(transaction.from, 'newTransaction', transaction);
+              informUser(transaction.to_user,   'newTransaction', transaction);
+              informUser(transaction.from_user, 'newTransaction', transaction);
           })
           .then(res => socket.emit(res)); // Emit new TXID
       } else {
