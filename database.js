@@ -41,9 +41,9 @@ var database = function(db_name) {
     return this.checkGroupMembership(uid, gid).then(res => {
       if (res) {
         console.log('Adding user into group');
-        this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
+        return this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
         VALUES ($1, $2)\;", [gid, uid]);
-      });
+      }
   };
 
   // A PROMISE that returns true if USER with uid is NOT in group with GID
