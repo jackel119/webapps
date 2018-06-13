@@ -210,6 +210,7 @@ io.on('connection', (socket) => {
   authenticatedCall('getGroups', () => {
    db.belongsToGroups(current_user())
       .then(res => {
+        console.log('Sending groups to user', current_user());
         socket.emit('groups', res);
       });
   });
@@ -219,12 +220,29 @@ io.on('connection', (socket) => {
   //  name: 'some name',
   //  members: list of UIDs, can be empty but NOT null
   // }
-  socket.on('createNewGroup', (data) => {
+  authenticatedCall('createNewGroup', (data) => {
     db.newGroup(data.name).then(res => {
       db.groupAddMember(current_user(), res.gid).then(res2 => {
         socket.emit('groupCreationSuccess', res)
       });
     });
+  });
+
+  // Event for creating new Group Transaction
+  // {
+  //  description: 'some description',
+  //  gid : gid of group to split with,
+  //  value: monetary value,
+  //  split_method : TODO Decide
+  //  split : TODO Decide
+  // }
+  authenticatedCall('newGroupTX', (data) => {
+    // TODO: Implement dis
+  });
+
+  // For Receipt Parsing, should return a json
+  authenticatedCall('imageParse', (data) => {
+    
   });
 
 });
