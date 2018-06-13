@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
         callback(data);
       } else {
         // If unauthenticated, then deny request
-        console.log('Unauthenticated request from user', uid);
+        console.log('Unauthenticated,' ioevent, 'request from user', uid);
         socket.emit('unauthenticatedRequest');
       }
     })
@@ -159,40 +159,15 @@ io.on('connection', (socket) => {
 
   // Sends transactions to users, of the form
   // { to: [transactions to that user] , from: [transactions from]}
-  socket.on('requestTXs', () => {
-    var uid = current_user();
-    if (uid != undefined) { // Check user is authenticated
-      console.log('User', uid, 'has asked for all transactions, sending');
-      db.txsWith(uid)
-        .then(res => socket.emit('allTransactions', res.rows));
-    } else {
-      // If unauthenticated, then tell the client so
-      console.log('Unauthenticated request from user', uid);
-      socket.emit('unauthenticatedRequest');
-    }
-  });
-
-  authenticatedCall('requestTXs2', () => {
-    console.log('User', uid, 'has asked for all transactions, sending');
+  authenticatedCall('requestTXs', () => {
+    console.log('User', current_user(), 'has asked for all transactions, sending');
     db.txsWith(uid)
       .then(res => socket.emit('allTransactions', res.rows));
   });
 
   // Client wants user details (names), gives UIDs as a list.
   // We want to return a map (JS Object) of those UIDs to users.
-  socket.on('getUsersByUID', uidList => {
-    var uid = authorizedClients[socket.id];
-    if (uid != undefined) { // Check use is authenticated
-      db.getUsersByUID(uidList).then( res => {
-        socket.emit('users', res);
-      });
-    } else {
-      // If unauthenticated, then tell the client so
-      socket.emit('unauthenticatedRequest');
-    }
-  });
-
-  authenticatedCall('getUsersByUID2', uidList => {
+  authenticatedCall('getUsersByUID', uidList => {
     db.getUsersByUID(uidList).then( res => {
       socket.emit('users', res);
     });
@@ -207,39 +182,32 @@ io.on('connection', (socket) => {
   //   description: text,
   //   groupID: gid
   // }
-  socket.on('createTX', transaction => {
+  authenticatedCall('createTX', transaction => {
     console.log("Receiving new transaction from", socket.id);
     console.log(transaction);
-    var uid = current_user();
-    if (uid != undefined) {
-      if (transaction.to == uid || transaction.from == uid) {
-        // Socket user is indeed sender/receiver of transaction
-        db.newTX(transaction.to, transaction.from, transaction.amount,
-          transaction.currency, transaction.description, transaction.groupID)
-          .then(transaction => {
-            // Emit new transactions to both users
-            informUser(transaction.to_user,   'newTransaction', transaction);
-            if (transaction.to_user != transaction.from_user) {
-              informUser(transaction.from_user, 'newTransaction', transaction);
-            }
-          })
-          .then(res => socket.emit(res)); // Emit new TXID
-      } else {
-        // Socket user is NOT sender/receiver of transaction
-        console.log('User', uid, 'is not receiver/sender of transaction');
-        socket.emit('invalidCreation', {
-          message: 'You can only create transactions to and from yourself!'
-        });
-      }
+    if (transaction.to == uid || transaction.from == uid) {
+      // Socket user is indeed sender/receiver of transaction
+      db.newTX(transaction.to, transaction.from, transaction.amount,
+        transaction.currency, transaction.description, transaction.groupID)
+        .then(transaction => {
+          // Emit new transactions to both users
+          informUser(transaction.to_user,   'newTransaction', transaction);
+          if (transaction.to_user != transaction.from_user) {
+            informUser(transaction.from_user, 'newTransaction', transaction);
+          }
+        })
+        .then(res => socket.emit(res)); // Emit new TXID
     } else {
-      // If unauthenticated, then tell the client so
-      console.log('Unauthenticated Request!');
-      socket.emit('unauthenticatedRequest');
+      // Socket user is NOT sender/receiver of transaction
+      console.log('User', uid, 'is not receiver/sender of transaction');
+      socket.emit('invalidCreation', {
+        message: 'You can only create transactions to and from yourself!'
+      });
     }
   });
 
   // Get groups for a user
-  socket.on('getGroups', () => {
+  authenticatedCall('getGroups', () => {
    db.belongsToGroups(current_user())
       .then(res => {
         socket.emit('groups', res);
@@ -253,14 +221,14 @@ io.on('connection', (socket) => {
   // }
   socket.on('createNewGroup', (data) => {
     db.newGroup(data.name).then( res => {
-      
+      db.groupAddMember(current_user(), res.gid)
     });
   });
 
 });
 
 //-------------------------------------
-//--------AUTHENTICATION STUFF---------
+//--------authentication stuff---------
 //-------------------------------------
 
 // Set passport to use FacebookStrategy
@@ -293,3 +261,8 @@ app.get(
     res.send('AUTH WAS GOOD!');
   }
 );
+
+//-------------------------------------
+//--------------SERVER UTILS-----------
+//-------------------------------------
+

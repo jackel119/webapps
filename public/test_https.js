@@ -20,7 +20,7 @@ socket.on('connect', () => {
     // We have authenticated, so therefore ask for transactions
     console.log('Authentication Success!');
     console.log('Requesting Transactions now!');
-    socket.emit('requestTXs');
+    socket.emit('requestTXs2');
   });
 
   // #4 When we receive transactions, print them
@@ -34,18 +34,18 @@ socket.on('connect', () => {
     }
     // console.log(list);
     console.log('Now getting users of groups!');
-    socket.emit('getUsersByUID', list);
+    socket.emit('getUsersByUID2', list);
   });
 
   socket.on('users', res => {
-    // console.log(res);
+    console.log(res);
     result.userMap = res;
     // console.log(result);
     socket.emit('getGroups');
   });
 
   socket.on('groupUsers', res => {
-    console.log(res);
+    // console.log(res);
   });
 
   // If, for any reason, the server tells us we are unauthenticated,

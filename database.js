@@ -25,11 +25,11 @@ var database = function(db_name) {
   // TODO: Add constraint that a user cannot be in two groups of the same name
   // Returns the passed arguments as confirmation of creation success
   this.newGroup = (groupName) => {
-    var newUID = uuid(); 
+    var gid = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
     return this.client.query("INSERT INTO USER_GROUP \n \
-      VALUES ( $1, $2, $3 )\;", [newUID, groupName, dateCreated])
-      .then(() => {newUID, groupName, dateCreated});
+      VALUES ( $1, $2, $3 )\;", [gid, groupName, dateCreated])
+      .then(() => ({ gid: gid, groupName: groupName, dateCreated: dateCreated}));
   };
 
   // Adds USER with uid to GROUP with gid
@@ -38,15 +38,12 @@ var database = function(db_name) {
   this.groupAddMember = (uid, gid) => {
     // Check if user is already in group or not
     // if user not in group, then add to group
-    this.checkGroupMembership(uid, gid).then(res => {
+    return this.checkGroupMembership(uid, gid).then(res => {
       if (res) {
         console.log('Adding user into group');
         this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
         VALUES ($1, $2)\;", [gid, uid]);
-      } else {
-        console.log('User already in group');
-      }
-    });
+      });
   };
 
   // A PROMISE that returns true if USER with uid is NOT in group with GID
