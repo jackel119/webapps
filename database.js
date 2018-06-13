@@ -140,19 +140,19 @@ var database = function(db_name) {
   // All transactions to a user
   // Returns a PROMISE
   this.txsTo = (uid) => {
-    return this.client.query("SELECT * FROM TRANSACTION WHERE TO_USER = $1;", [uid]);
+    return this.client.query("SELECT * FROM TRANSACTION WHERE TO_USER = $1 ORDER BY TIME;", [uid]);
   };
 
   // All transactions from a user
   // Returns a PROMISE
   this.txsFrom = (uid) => {
-    return this.client.query("SELECT * FROM TRANSACTION WHERE FROM_USER = $1;", [uid]);
+    return this.client.query("SELECT * FROM TRANSACTION WHERE FROM_USER = $1 ORDER BY TIME;", [uid]);
   };
 
   // All transactions with user of uid
   this.txsWith = (uid) => {
     return this.client.query("SELECT * FROM TRANSACTION WHERE \n \
-      FROM_USER = $1 OR TO_USER = $1;", [uid]);
+      FROM_USER = $1 OR TO_USER = $1 ORDER BY TIME;", [uid]);
   };
 
   // All group transactions
