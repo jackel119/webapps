@@ -77,8 +77,23 @@ io.on('connection', (socket) => {
   var current_user = () => {
     return authorizedClients[socket.id];
   };
+
+  var authenticatedCall = (ioevent, callback) => {
+    socket.on(ioevent, (data) => {
+      var uid = current_user();
+      // If socket has authenticated as a user, then proceed.
+      if (uid != undefined) {
+        callback(data);
+      } else {
+        // If unauthenticated, then deny request
+        console.log('Unauthenticated request from user', uid);
+        socket.emit('unauthenticatedRequest');
+      }
+    })
+  };
   console.log('Made socket connection with socket:', socket.id);
 
+  // Disconnect Event, clears up socket/user maps
   socket.on('disconnect', (reason) => {
     console.log('Socket', socket.id, 'has disconnected');
     if (authorizedClients[socket.id] != undefined) {
@@ -145,7 +160,7 @@ io.on('connection', (socket) => {
   // Sends transactions to users, of the form
   // { to: [transactions to that user] , from: [transactions from]}
   socket.on('requestTXs', () => {
-    var uid = authorizedClients[socket.id];
+    var uid = current_user();
     if (uid != undefined) { // Check user is authenticated
       console.log('User', uid, 'has asked for all transactions, sending');
       db.txsWith(uid)
@@ -155,6 +170,12 @@ io.on('connection', (socket) => {
       console.log('Unauthenticated request from user', uid);
       socket.emit('unauthenticatedRequest');
     }
+  });
+
+  authenticatedCall('requestTXs2', () => {
+    console.log('User', uid, 'has asked for all transactions, sending');
+    db.txsWith(uid)
+      .then(res => socket.emit('allTransactions', res.rows));
   });
 
   // Client wants user details (names), gives UIDs as a list.
@@ -169,6 +190,12 @@ io.on('connection', (socket) => {
       // If unauthenticated, then tell the client so
       socket.emit('unauthenticatedRequest');
     }
+  });
+
+  authenticatedCall('getUsersByUID2', uidList => {
+    db.getUsersByUID(uidList).then( res => {
+      socket.emit('users', res);
+    });
   });
 
   // Creating a new transaction.
@@ -199,7 +226,7 @@ io.on('connection', (socket) => {
           .then(res => socket.emit(res)); // Emit new TXID
       } else {
         // Socket user is NOT sender/receiver of transaction
-        console.log('User', uid, 'is not receiversender of transactio');
+        console.log('User', uid, 'is not receiver/sender of transaction');
         socket.emit('invalidCreation', {
           message: 'You can only create transactions to and from yourself!'
         });
@@ -219,13 +246,15 @@ io.on('connection', (socket) => {
       });
   });
 
-  // Test events, TODO: Remove later
-  socket.on('test-packet', (data) => {
-    console.log(data.message);
-  });
-
-  socket.on('hello-message', (data) => {
-    console.log(data.message);
+  // Event for creating new group
+  // {
+  //  name: 'some name',
+  //  members: list of UIDs, can be empty but NOT null
+  // }
+  socket.on('createNewGroup', (data) => {
+    db.newGroup(data.name).then( res => {
+      
+    });
   });
 
 });

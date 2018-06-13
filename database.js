@@ -23,11 +23,13 @@ var database = function(db_name) {
 
   // Created a new group with group name
   // TODO: Add constraint that a user cannot be in two groups of the same name
+  // Returns the passed arguments as confirmation of creation success
   this.newGroup = (groupName) => {
     var newUID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
     return this.client.query("INSERT INTO USER_GROUP \n \
-      VALUES ( $1, $2, $3 )\;", [newUID, groupName, dateCreated]);
+      VALUES ( $1, $2, $3 )\;", [newUID, groupName, dateCreated])
+      .then(() => {newUID, groupName, dateCreated});
   };
 
   // Adds USER with uid to GROUP with gid
@@ -52,6 +54,11 @@ var database = function(db_name) {
     return this.client.query("SELECT * FROM GROUP_MEMBERSHIP \n \
       WHERE UID = $1 \n \
       AND GID = $2\;", [uid, gid]).then(result => result.rowCount === 0);
+  };
+
+  this.getAllGroupMembers = (gid) => {
+    return this.client.query("SELECT UID FROM \n \
+      GROUP_MEMBERSHIP WHERE GID = $1", [gid]).then(res => res.rows);
   };
 
   // Creates a new transaction
@@ -117,7 +124,9 @@ var database = function(db_name) {
   };
 
   this.getOtherUsersInGroups = (uid) => {
-    return this.client.query("SELECT * FROM USER_ACCOUNT JOIN GROUP_MEMBERSHIP ON USER_ACCOUNT.UID = GROUP_MEMBERSHIP.UID WHERE GID IN (SELECT GID FROM GROUP_MEMBERSHIP WHERE UID = $1);", [uid]);
+    return this.client.query("SELECT * FROM USER_ACCOUNT JOIN GROUP_MEMBERSHIP ON USER_ACCOUNT.UID = GROUP_MEMBERSHIP.UID WHERE GID IN (SELECT GID FROM GROUP_MEMBERSHIP WHERE UID = $1);", [uid]).then(res => {
+      return userListToMap(res.rows);
+    });
 
   };
 
