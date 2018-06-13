@@ -115,11 +115,11 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
 
   it('Finds Groups', () => {
     return db.belongsToGroupsByEmail('jackel119@gmail.com')
-    .then(res => console.log(res));
+    // .then(res => console.log(res));
   });
 
   it('Finds other users in shared groups', () => {
-    return db.getUserByEmail('jackel119@gmail.com')
+    return db.getUserByEmail('baugart@php.net')
       .then(res => {
         console.log(res); 
         return db.getOtherUsersInGroups(res.uid);
