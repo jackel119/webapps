@@ -113,9 +113,9 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
       ORDER BY RANDOM() LIMIT 1;').then(res => console.log(res)); //assert(res.rowCount == 1));
   });
 
-  it('Finds Groups', () => {
-    db.belongsToGroupsByEmail('jackel119@gmail.com')
-    .then(res => console.log(res));
-  });
+  // it('Finds Groups', () => {
+  //   db.belongsToGroupsByEmail('jackel119@gmail.com')
+  //   .then(res => console.log(res));
+  // });
   
 });
