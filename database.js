@@ -209,7 +209,7 @@ var database = function(db_name) {
       UID = ANY($1)', [uidList]).then(res => userListToMap(res.rows));
   };
 
-  this.userListToMap = (list) => {
+  var userListToMap = (list) => {
     var map = {};
     for (var user of list) {
       map[user.uid] = user;

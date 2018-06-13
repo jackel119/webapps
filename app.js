@@ -183,7 +183,7 @@ io.on('connection', (socket) => {
   socket.on('createTX', transaction => {
     console.log("Receiving new transaction from", socket.id);
     console.log(transaction);
-    var uid = authorizedClients[socket.id];
+    var uid = current_user();
     if (uid != undefined) {
       if (transaction.to == uid || transaction.from == uid) {
         // Socket user is indeed sender/receiver of transaction
@@ -197,12 +197,14 @@ io.on('connection', (socket) => {
           .then(res => socket.emit(res)); // Emit new TXID
       } else {
         // Socket user is NOT sender/receiver of transaction
+        console.log('User', uid, 'is not receiversender of transactio');
         socket.emit('invalidCreation', {
           message: 'You can only create transactions to and from yourself!'
         });
       }
     } else {
       // If unauthenticated, then tell the client so
+      console.log('Unauthenticated Request!');
       socket.emit('unauthenticatedRequest');
     }
   });
