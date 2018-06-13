@@ -43,7 +43,8 @@ var database = function(db_name) {
         console.log('Adding user into group');
         return this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
         VALUES ($1, $2)\;", [gid, uid]);
-      }
+      };
+    });
   };
 
   // A PROMISE that returns true if USER with uid is NOT in group with GID
