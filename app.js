@@ -190,9 +190,11 @@ io.on('connection', (socket) => {
         db.newTX(transaction.to, transaction.from, transaction.amount,
           transaction.currency, transaction.text, transaction.groupID)
           .then(transaction => {
-              // Emit new transactions to both users
-              informUser(transaction.to_user,   'newTransaction', transaction);
+            // Emit new transactions to both users
+            informUser(transaction.to_user,   'newTransaction', transaction);
+            if (transaction.to_user != transaction.from_user) {
               informUser(transaction.from_user, 'newTransaction', transaction);
+            }
           })
           .then(res => socket.emit(res)); // Emit new TXID
       } else {
