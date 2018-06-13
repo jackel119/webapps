@@ -59,7 +59,7 @@ var database = function(db_name) {
   this.newTX = (to, from, howMuch, currency, description, groupID) => {
     var newTXID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
-    this.client.query("INSERT INTO TRANSACTION \n \
+    return this.client.query("INSERT INTO TRANSACTION \n \
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newTXID, to, from, currency, howMuch, dateCreated, description, 0, groupID]).then(() =>  {
         return {
           txid: newTXID,
@@ -96,7 +96,7 @@ var database = function(db_name) {
   this.belongsToGroups = (uid) => {
     return this.client.query("SELECT USER_GROUP.GID, GNAME, CREATED FROM GROUP_MEMBERSHIP \n \
       JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
-      WHERE USER_ACCOUNT.UID = $1\;", [uid]);
+      WHERE USER_ACCOUNT.UID = $1\;", [uid]).then(res => res.rows);
   };
 
   // All the groups a user account belongs to
@@ -105,7 +105,7 @@ var database = function(db_name) {
   this.belongsToGroupsByEmail = (email) => {
     return this.client.query("SELECT USER_GROUP.GID, GNAME, CREATED FROM GROUP_MEMBERSHIP \n \
       JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
-      WHERE USER_ACCOUNT.EMAIL = $1\;", [email]);
+      WHERE USER_ACCOUNT.EMAIL = $1\;", [email]).then(res => res.rows);
   };
 
   // Returns all users that belongs to a specific group

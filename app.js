@@ -73,12 +73,16 @@ var userToSockets = {};
 var usersToBeInformed = {};
 
 io.on('connection', (socket) => {
+
+  var current_user = () => {
+    return authorizedClients[socket.id];
+  };
   console.log('Made socket connection with socket:', socket.id);
 
   socket.on('disconnect', (reason) => {
     console.log('Socket', socket.id, 'has disconnected');
     if (authorizedClients[socket.id] != undefined) {
-      userToSockets[authorizedClients[socket.id]].delete(socket.id);
+      userToSockets[current_user()].delete(socket.id);
       delete authorizedClients[socket.id];
     }
   });
@@ -110,11 +114,11 @@ io.on('connection', (socket) => {
   // Catches up a single socket
   // There are still edge cases around a user having multiple clients
   var catchUpUser = () => {
-    if (usersToBeInformed[authorizedClients[socket.id]] != undefined) {
-      for (var events of usersToBeInformed[authorizedClients[socket.id]]) {
+    if (usersToBeInformed[current_user()] != undefined) {
+      for (var events of usersToBeInformed[current_user()]) {
         socket.emit(events.event, events.data);
       }
-      delete usersToBeInformed[authorizedClients[socket.id]];
+      delete usersToBeInformed[current_user()];
     }
   };
 
@@ -177,7 +181,7 @@ io.on('connection', (socket) => {
   //   groupID: gid
   // }
   socket.on('createTX', transaction => {
-    console.log("Receiving transaction from", socket.id);
+    console.log("Receiving new transaction from", socket.id);
     console.log(transaction);
     var uid = authorizedClients[socket.id];
     if (uid != undefined) {
@@ -189,7 +193,7 @@ io.on('connection', (socket) => {
             // Emit new transactions to both users
                informUser(transaction.to,   'newTransaction', transaction);
                informUser(transaction.from, 'newTransaction', transaction);
-          }); 
+          })
           .then(res => socket.emit(res)); // Emit new TXID
       } else {
         // Socket user is NOT sender/receiver of transaction
@@ -203,6 +207,14 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Get groups for a user
+  socket.on('getGroups', () => {
+   db.belongsToGroups(current_user())
+      .then(res => {
+        var 
+        socket.emit(res);
+      });
+  });
 
   // Test events, TODO: Remove later
   socket.on('test-packet', (data) => {
