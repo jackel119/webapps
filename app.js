@@ -190,9 +190,9 @@ io.on('connection', (socket) => {
         db.newTX(transaction.to, transaction.from, transaction.amount,
           transaction.currency, transaction.text, transaction.groupID)
           .then(transaction => {
-            // Emit new transactions to both users
-               informUser(transaction.to,   'newTransaction', transaction);
-               informUser(transaction.from, 'newTransaction', transaction);
+              // Emit new transactions to both users
+              informUser(transaction.to,   'newTransaction', transaction);
+              informUser(transaction.from, 'newTransaction', transaction);
           })
           .then(res => socket.emit(res)); // Emit new TXID
       } else {
@@ -211,8 +211,7 @@ io.on('connection', (socket) => {
   socket.on('getGroups', () => {
    db.belongsToGroups(current_user())
       .then(res => {
-        var 
-        socket.emit(res);
+        socket.emit('groups', res);
       });
   });
 

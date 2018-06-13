@@ -39,12 +39,11 @@ socket.on('connect', () => {
     // console.log(res);
     result.userMap = res;
     console.log(result);
-    // var map = {};
-    // for (var user of res.rows) {
-    //   map[user.uid] = user;
-    //   delete user.uid;
-    // }
-    // console.log(map);
+    socket.emit('getGroups');
+  });
+
+  socket.on('groups', res => {
+    console.log(res);
   });
 
   // If, for any reason, the server tells us we are unauthenticated,
