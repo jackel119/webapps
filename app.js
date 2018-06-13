@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
         callback(data);
       } else {
         // If unauthenticated, then deny request
-        console.log('Unauthenticated,' ioevent, 'request from user', uid);
+        console.log('Unauthenticated', ioevent, 'request from user', uid);
         socket.emit('unauthenticatedRequest');
       }
     })
