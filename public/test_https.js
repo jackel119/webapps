@@ -48,6 +48,10 @@ socket.on('connect', () => {
     // console.log(res);
   });
 
+  socket.on('groups', res => {
+    console.log(res);
+  });
+
   // If, for any reason, the server tells us we are unauthenticated,
   // then login again
   socket.on('unauthenticatedRequest', () => {

@@ -120,15 +120,16 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
 
   it('Finds other users in shared groups', () => {
     return db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => {
-        // console.log(res);
-        console.log(res.rows[0].email);
-        return db.getUserByEmail(res.rows[0].email)
-      })
-      .then(res => {
-        console.log(res); 
-        return db.getOtherUsersInGroups(res.uid);
-      }).then(res => console.log(res));
+      ORDER BY RANDOM() LIMIT 1;')
+      // .then(res => {
+      //   // console.log(res);
+      //   console.log(res.rows[0].email);
+      //   return db.getUserByEmail(res.rows[0].email)
+      // })
+      // .then(res => {
+      //   console.log(res); 
+      //   return db.getOtherUsersInGroups(res.uid);
+      // }).then(res => console.log(res));
   });
   
 });

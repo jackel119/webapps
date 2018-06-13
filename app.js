@@ -220,15 +220,17 @@ io.on('connection', (socket) => {
   //  members: list of UIDs, can be empty but NOT null
   // }
   socket.on('createNewGroup', (data) => {
-    db.newGroup(data.name).then( res => {
-      db.groupAddMember(current_user(), res.gid)
+    db.newGroup(data.name).then(res => {
+      db.groupAddMember(current_user(), res.gid).then(res2 => {
+        socket.emit('groupCreationSuccess', res)
+      });
     });
   });
 
 });
 
 //-------------------------------------
-//--------authentication stuff---------
+//--------Authentication stuff---------
 //-------------------------------------
 
 // Set passport to use FacebookStrategy

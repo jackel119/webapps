@@ -42,7 +42,7 @@ var database = function(db_name) {
       if (res) {
         console.log('Adding user into group');
         return this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
-        VALUES ($1, $2)\;", [gid, uid]);
+        VALUES ($1, $2)\;", [gid, uid]).then(res => ({gid: gid, uid: uid}));
       };
     });
   };
