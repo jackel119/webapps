@@ -87,7 +87,7 @@ var database = function(db_name) {
   // NOT SAFE, can return 0 rows if email not in db
   this.getUserByEmail = (email) => {
     return this.client.query("SELECT (UID) FROM USER_ACCOUNT \n \
-      WHERE EMAIL = $1 \;", [email]);
+      WHERE EMAIL = $1 \;", [email]).then( res => res.rows[0] );
   };
 
   // All the groups a user account belongs to
@@ -114,6 +114,11 @@ var database = function(db_name) {
     return this.client.query("SELECT USER_ACCOUNT.* FROM GROUP_MEMBERSHIP \n \
       JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
       WHERE GROUP_MEMBERSHIP.GID = $1\;", [gid]);
+  };
+
+  this.getOtherUsersInGroups = (uid) => {
+    return this.client.query("SELECT * FROM USER_ACCOUNT JOIN GROUP_MEMBERSHIP ON USER_ACCOUNT.UID = GROUP_MEMBERSHIP.UID WHERE GID IN (SELECT GID FROM GROUP_MEMBERSHIP WHERE UID = $1);", [uid]);
+
   };
 
   // Returns the sum of the net positives
@@ -201,14 +206,16 @@ var database = function(db_name) {
 
   this.getUsersByUID = (uidList) => {
     return this.client.query('SELECT * FROM USER_ACCOUNT WHERE \n \
-      UID = ANY($1)', [uidList]).then(res => {
-        var map = {};
-        for (var user of res.rows) {
-          map[user.uid] = user;
-          delete user.uid;
-        }
-        return map;
-      });
+      UID = ANY($1)', [uidList]).then(res => userListToMap(res.rows));
+  };
+
+  this.userListToMap = (list) => {
+    var map = {};
+    for (var user of list) {
+      map[user.uid] = user;
+      delete user.uid;
+    }
+    return map;
   };
 
 

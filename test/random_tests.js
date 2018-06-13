@@ -110,12 +110,21 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
 
   it('Selects random groups', () => {
     return db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;').then(res => console.log(res)); //assert(res.rowCount == 1));
+      ORDER BY RANDOM() LIMIT 1;') // .then(res => console.log(res)); //assert(res.rowCount == 1));
   });
 
-  // it('Finds Groups', () => {
-  //   db.belongsToGroupsByEmail('jackel119@gmail.com')
-  //   .then(res => console.log(res));
-  // });
+  it('Finds Groups', () => {
+    return db.belongsToGroupsByEmail('jackel119@gmail.com')
+    .then(res => console.log(res));
+  });
+
+  it('Finds other users in shared groups', () => {
+    return db.getUserByEmail('jackel119@gmail.com')
+      .then(res => {
+        console.log(res); 
+        return db.getOtherUsersInGroups(res.uid);
+      })
+      // .then(res => console.log(res.rows));
+  });
   
 });
