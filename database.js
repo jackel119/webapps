@@ -159,7 +159,7 @@ var database = function(db_name) {
   // All transactions with user of uid
   this.txsWith = (uid) => {
     return this.client.query("SELECT * FROM TRANSACTION WHERE \n \
-      FROM_USER = $1 OR TO_USER = $1 ORDER BY TIME;", [uid]);
+      FROM_USER = $1 OR TO_USER = $1 ORDER BY TIME DESC;", [uid]);
   };
 
   // All group transactions
