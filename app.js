@@ -242,7 +242,20 @@ io.on('connection', (socket) => {
 
   // For Receipt Parsing, should return a json
   authenticatedCall('imageParse', (data) => {
-    
+    // DUMMY FOR NOW, TODO
+    socket.emit('itemizedBill', {
+      items: [
+        {
+          item: 'apple',
+          price: 5
+        }, 
+        {
+          item: 'banana',
+          price: 5
+        }
+      ],
+      total: 10
+    });
   });
 
 });
