@@ -247,10 +247,12 @@ io.on('connection', (socket) => {
     socket.emit('itemizedBill', {
       items: [
         {
+          id: 1,
           name: 'apple',
           price: 5
         }, 
         {
+          id: 2,
           name: 'banana',
           price: 5
         }
