@@ -215,6 +215,15 @@ io.on('connection', (socket) => {
       });
   });
 
+  authenticatedCall('getMembersOfGroup', (gid) => {
+    db.getAllGroupMembers(gid).then( res => {
+      socket.emit('groupMembers', ({
+        gid: gid,
+        members: res
+      }));
+    });
+  });
+
   // Event for creating new group
   // {
   //  name: 'some name',

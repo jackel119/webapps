@@ -50,6 +50,12 @@ socket.on('connect', () => {
 
   socket.on('groups', res => {
     console.log(res);
+    console.log('here!');
+    socket.emit('getMembersOfGroup', res[0].gid);
+  });
+
+  socket.on('groupMembers', res => {
+    console.log(res);
   });
 
   // If, for any reason, the server tells us we are unauthenticated,
@@ -58,4 +64,3 @@ socket.on('connect', () => {
     // Handle it, maybe login again
   });
 });
-
