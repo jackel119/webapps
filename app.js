@@ -241,21 +241,26 @@ io.on('connection', (socket) => {
   });
 
   // For Receipt Parsing, should return a json
-  authenticatedCall('imageParse', (data) => {
+  socket.on('imageParse', (data) => {
     // DUMMY FOR NOW, TODO
+    console.log(current_user(), 'has asked to parse a receipt');
     socket.emit('itemizedBill', {
       items: [
         {
-          item: 'apple',
+          name: 'apple',
           price: 5
         }, 
         {
-          item: 'banana',
+          name: 'banana',
           price: 5
         }
       ],
       total: 10
     });
+  });
+
+  socket.on('imageParse2', (data) => {
+
   });
 
 });
