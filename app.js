@@ -7,7 +7,6 @@ var FacebookStrategy  =  require('passport-facebook').Strategy;
 var session           =  require('express-session');
 var cookieParser      =  require('cookie-parser');
 var bodyParser        =  require('body-parser');
-var config            =  require('./config/config');
 var pg                =  require('./database');
 var app               =  express();
 var GEX               =  require('greenlock-express');
