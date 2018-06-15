@@ -217,6 +217,11 @@ var database = function(db_name) {
       UID = ANY($1)', [uidList]).then(res => userListToMap(res.rows));
   };
 
+  this.getUserByUID = (uid) => {
+    return this.client.query('SELECT * FROM USER_ACCOUNT WHERE \n \
+      UID = $1', [uid]).then(res => res.rows[0]);
+  };
+
   var userListToMap = (list) => {
     var map = {};
     for (var user of list) {

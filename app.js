@@ -13,6 +13,7 @@ var app               =  express();
 var GEX               =  require('greenlock-express');
 var https             =  require('https');
 var http              =  require('http');
+var config            =  require('./config');
 
 // Database Setup
 const db = new pg.Database('webapp-testing');
@@ -89,7 +90,7 @@ io.on('connection', (socket) => {
         console.log('Unauthenticated', ioevent, 'request from user', uid);
         socket.emit('unauthenticatedRequest');
       }
-    })
+    });
   };
   console.log('Made socket connection with socket:', socket.id);
 
@@ -173,6 +174,14 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Client wants user details (names), gives UIDs as a list.
+  // We want to return a map (JS Object) of those UIDs to users.
+  authenticatedCall('getUserByUID', uid => {
+    db.getUserByUID(uid).then( res => {
+      socket.emit('user', res);
+    });
+  });
+
   // Creating a new transaction.
   // transaction = {
   //   to : uid,
@@ -232,47 +241,46 @@ io.on('connection', (socket) => {
   authenticatedCall('createNewGroup', (data) => {
     db.newGroup(data.name).then(res => {
       db.groupAddMember(current_user(), res.gid).then(res2 => {
-        socket.emit('groupCreationSuccess', res)
+        socket.emit('groupCreationSuccess', res);
       });
     });
   });
 
   // Event for creating new Group Transaction
+  // Bill type:
   // {
-  //  description: 'some description',
-  //  gid : gid of group to split with,
-  //  value: monetary value,
-  //  split_method : TODO Decide
-  //  split : TODO Decide
+  //  groupID: null if not a group transaction
+  //  users: [user1, user2, etc] list of UIDs of users involved
+  //  description: 'some kind of bill description'
+  //  items : [ // optional
+  //            {
+  //              itemname: 'apple',
+  //              price:     1.5,
+  //              (optional?) split: (same as split field below)
+  //            },
+  //            {
+  //              itemname: 'banana',
+  //              price:     2
+  //            }
+  //          ],
+  //  totalprice : 3.5,
+  //  splitType: totalEvenSplit/totalPercentage/byItem,
+  //  split: {
+  //          user1: splitAmount1,
+  //          user2: splitAmount2
+  //         } // overall split of the total
+  //  author: uid of author,
+  //  (potentially?) payee: user1,
+  //  timestamp: time
   // }
   authenticatedCall('newGroupTX', (data) => {
     // TODO: Implement dis
+    // 1.) Check group/users are valid?
+    // 2.) add bill to bill table
+    // 3.) Look at split and create atomic transactions with billID based on that
+    // 4.) Return success (billID);
   });
 
-  // For Receipt Parsing, should return a json
-  socket.on('imageParse', (data) => {
-    // DUMMY FOR NOW, TODO
-    console.log(current_user(), 'has asked to parse a receipt');
-    socket.emit('itemizedBill', {
-      items: [
-        {
-          id: 1,
-          name: 'apple',
-          price: 5
-        }, 
-        {
-          id: 2,
-          name: 'banana',
-          price: 5
-        }
-      ],
-      total: 10
-    });
-  });
-
-  socket.on('imageParse2', (data) => {
-
-  });
 
 });
 
@@ -294,7 +302,6 @@ passport.use(
     db.fb_login(profile._json);
     done(null, profile);
   }
-
 ));
 
 // Use passport
