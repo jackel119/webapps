@@ -13,7 +13,6 @@ var app               =  express();
 var GEX               =  require('greenlock-express');
 var https             =  require('https');
 var http              =  require('http');
-var config            =  require('./config');
 
 // Database Setup
 const db = new pg.Database('webapp-testing');
@@ -289,34 +288,34 @@ io.on('connection', (socket) => {
 //-------------------------------------
 
 // Set passport to use FacebookStrategy
-passport.use(
-  new FacebookStrategy({
-    clientID: config.facebook_api_key,
-    clientSecret: config.facebook_api_secret,
-    callbackURL: 'http://www.jackpordi.co.uk:2605/auth/facebook/callback',
-    profileFields: ['id', 'emails', 'name']
-  },
-  (accessToken, refreshToken, profile, done) => {
-    console.log(accessToken);
-    console.log(profile._json);
-    db.fb_login(profile._json);
-    done(null, profile);
-  }
-));
-
-// Use passport
-app.use(passport.initialize());
-
-// Direct User to login with facebook
-app.get('/login/fb', passport.authenticate('facebook', {scope : ['email']}));
-
-app.get(
-  '/auth/facebook/callback',
-  passport.authenticate('facebook', { session: false }),
-  (req, res) => {
-    res.send('AUTH WAS GOOD!');
-  }
-);
+// passport.use(
+//   new FacebookStrategy({
+//     clientID: config.facebook_api_key,
+//     clientSecret: config.facebook_api_secret,
+//     callbackURL: 'http://www.jackpordi.co.uk:2605/auth/facebook/callback',
+//     profileFields: ['id', 'emails', 'name']
+//   },
+//   (accessToken, refreshToken, profile, done) => {
+//     console.log(accessToken);
+//     console.log(profile._json);
+//     db.fb_login(profile._json);
+//     done(null, profile);
+//   }
+// ));
+// 
+// // Use passport
+// app.use(passport.initialize());
+// 
+// // Direct User to login with facebook
+// app.get('/login/fb', passport.authenticate('facebook', {scope : ['email']}));
+// 
+// app.get(
+//   '/auth/facebook/callback',
+//   passport.authenticate('facebook', { session: false }),
+//   (req, res) => {
+//     res.send('AUTH WAS GOOD!');
+//   }
+// );
 
 //-------------------------------------
 //--------------SERVER UTILS-----------
