@@ -4,6 +4,7 @@ const fs     = require('fs');
 const csv    = require('fast-csv');
 const pg     = require('../database');
 const uuid   = require('uuid/v1');
+const util   = require('util');
 
 // Test Environment
 describe('Generates randomized groups from fake data and simulates TXs', () => {
@@ -149,5 +150,14 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
       ORDER BY RANDOM() LIMIT 1').then(res => res.rows[0].gid)
       .then(res => db.getUsersInGroup(res))
       .then(res => console.log(res));
-  });
+  }); 
+  
+  it('Gets all groups that a user is in, \
+  as well as their members', () => {
+    return db.client.query('SELECT UID FROM USER_ACCOUNT \
+      ORDER BY RANDOM() LIMIT 1')
+    .then(res => res.rows[0].uid)
+    .then(res => db.allGroupsAndUsers(res))
+    .then(res => console.log(util.inspect(res, false, null)));
+  })
 });

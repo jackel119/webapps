@@ -123,6 +123,19 @@ var database = function(db_name) {
     .then(res => res.rows);
   };
 
+  // All groups and their users
+  this.allGroupsAndUsers = (uid) => {
+    return this.client.query("SELECT GROUP_MEMBERSHIP.GID, GNAME, CREATED FROM GROUP_MEMBERSHIP JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID WHERE GROUP_MEMBERSHIP.UID = $1", [uid])
+      .then(res => res.rows)
+      .then(res => res.map( g => {
+        return this.getUsersInGroup(g.gid).then(res => {
+          g.members = res;
+          return g;
+        })
+      }))
+      .then(res => Promise.all(res));
+  };
+
   // this.getOtherUsersInAllGroups = (uid) => {
   //   return this.client.query("SELECT * FROM USER_ACCOUNT JOIN GROUP_MEMBERSHIP ON USER_ACCOUNT.UID = GROUP_MEMBERSHIP.UID WHERE GID IN (SELECT GID FROM GROUP_MEMBERSHIP WHERE UID = $1);", [uid]).then(res => {
   //     return userListToMap(res.rows);

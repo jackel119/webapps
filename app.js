@@ -302,6 +302,26 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Returns
+  // [
+  //  {
+  //    gid: gid,
+  //    groupName: groupName,
+  //    members: [
+  //      {
+  //        first_name: 'Jack',
+  //        last_name: 'Pordi',
+  //        email:      'jackel119@gmail.com'
+  //      },
+  //    ]
+  //  }
+  // ]
+  authenticatedCall('getGroupsAndUsers',() => {
+    db.allGroupsAndUsers(current_user()).then(res => {
+      socket.emit('allGroupsAndUsers', res);
+    })
+  });
+
   authenticatedCall('addFriend', (friend_email) => {
     db.addFriend(current_user(), friend_email).then( () => {
       // Add friend
