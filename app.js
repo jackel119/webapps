@@ -255,7 +255,16 @@ io.on('connection', (socket) => {
   //            {
   //              itemname: 'apple',
   //              price:     1.5,
-  //              (optional?) split: (same as split field below)
+  //              split: [
+  //                { 
+  //                  user: name,
+  //                  splitAmount : value
+  //                },
+  //                { 
+  //                  user: name,
+  //                  splitAmount : value
+  //                }
+  //              ]
   //            },
   //            {
   //              itemname: 'banana',
@@ -264,17 +273,6 @@ io.on('connection', (socket) => {
   //          ],
   //  totalprice : 3.5,
   //  currency: 0,
-  //  splitType: totalEvenSplit/totalPercentage/byItem,
-  //  split: [
-  //          {
-  //            uid : uid1,
-  //            splitAmount: split1
-  //          },
-  //          {
-  //            uid : uid2,
-  //            splitAmount: split2
-  //          }
-  //         ] // overall split of the total
   //  author: uid of author,
   //  (potentially?) payee: user1,
   //  timestamp: time

@@ -29,12 +29,12 @@ socket.on('connect', () => {
     result.txs = res;
     var list = [];
     for (var tx of res) {
-      // console.log(tx);
+      console.log(tx);
       list.push(tx.to_user);
     }
-    // console.log(list);
+    // console.log(res);
     console.log('Now getting users of groups!');
-    socket.emit('getUsersByUID', list);
+    // socket.emit('getUsersByUID', list);
   });
 
   socket.on('users', res => {

@@ -242,7 +242,7 @@ var database = function(db_name) {
       FROM FRIEND JOIN USER_ACCOUNT ON FRIEND.user_2 = USER_ACCOUNT.UID WHERE \n \
       FRIEND.user_1 = $1 UNION SELECT FIRST_NAME, LAST_NAME, EMAIL FROM \n \
       FRIEND JOIN USER_ACCOUNT ON FRIEND.user_1 = USER_ACCOUNT.UID \n \
-      WHERE FRIEND.user_2 = $1;". [uid])
+      WHERE FRIEND.user_2 = $1;", [uid])
       .then(res => res.rows);
   };
 
