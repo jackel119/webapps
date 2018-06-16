@@ -248,20 +248,19 @@ io.on('connection', (socket) => {
   // Bill type:
   // {
   //  groupID: null if not a group transaction
-  //  users: [user1, user2, etc] list of UIDs of users involved
-  //  description: 'some kind of bill description'
-  //  timestamp: timestamp,
+  //  users: [user1, user2, etc] list of emails of users involved
+  //  description: 'some kind of bill description',
   //  items : [ // optional
   //            {
   //              itemname: 'apple',
   //              price:     1.5,
-  //              split: [
+  //              split: [ 
   //                { 
-  //                  user: name,
+  //                  user: email,
   //                  splitAmount : value
   //                },
   //                { 
-  //                  user: name,
+  //                  user: email,
   //                  splitAmount : value
   //                }
   //              ]
@@ -271,10 +270,20 @@ io.on('connection', (socket) => {
   //              price:     2
   //            }
   //          ],
+  //  split: [
+  //           { 
+  //             user: email,
+  //             splitAmount : value
+  //           },
+  //           { 
+  //             user: email,
+  //             splitAmount : value
+  //           }
+  //         ]
   //  totalprice : 3.5,
   //  currency: 0,
-  //  author: uid of author,
-  //  (potentially?) payee: user1,
+  //  author: email of author,
+  //  (potentially?) payee: user1_email,
   //  timestamp: time
   // }
 

@@ -20,7 +20,7 @@ socket.on('connect', () => {
     // We have authenticated, so therefore ask for transactions
     console.log('Authentication Success!');
     console.log('Requesting Transactions now!');
-    socket.emit('requestTXs');
+    // socket.emit('requestTXs');
   });
 
   // #4 When we receive transactions, print them
