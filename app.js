@@ -250,6 +250,7 @@ io.on('connection', (socket) => {
   //  groupID: null if not a group transaction
   //  users: [user1, user2, etc] list of UIDs of users involved
   //  description: 'some kind of bill description'
+  //  timestamp: timestamp,
   //  items : [ // optional
   //            {
   //              itemname: 'apple',
@@ -262,23 +263,43 @@ io.on('connection', (socket) => {
   //            }
   //          ],
   //  totalprice : 3.5,
+  //  currency: 0,
   //  splitType: totalEvenSplit/totalPercentage/byItem,
-  //  split: {
-  //          user1: splitAmount1,
-  //          user2: splitAmount2
-  //         } // overall split of the total
+  //  split: [
+  //          {
+  //            uid : uid1,
+  //            splitAmount: split1
+  //          },
+  //          {
+  //            uid : uid2,
+  //            splitAmount: split2
+  //          }
+  //         ] // overall split of the total
   //  author: uid of author,
   //  (potentially?) payee: user1,
   //  timestamp: time
   // }
-  authenticatedCall('newGroupTX', (data) => {
-    // TODO: Implement dis
-    // 1.) Check group/users are valid?
-    // 2.) add bill to bill table
-    // 3.) Look at split and create atomic transactions with billID based on that
-    // 4.) Return success (billID);
+  authenticatedCall('newGroupTX', (bill) => {
+    // 1.) Check group/users are valid? TODO
+    // 2.) add bill to bill table (DONE)
+    // 3.) Look at split and create atomic transactions 
+    // with billID based on that DONE
+    // 4.) Return success (billID) DONE
+    db.processBill(bill).then( res => {
+      socket.emit('billSuccess', {
+        bid: res,
+        bill: bill
+      });
+    });
   });
 
+  authenticatedCall('addFriend', (friend) => {
+    // Add friend TODO
+  });
+
+  authenticatedCall('getFriends', (friend) => {
+    // Return friends TODO
+  });
 
 });
 

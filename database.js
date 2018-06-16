@@ -61,11 +61,11 @@ var database = function(db_name) {
 
   // Creates a new transaction
   // SAFE: Never fails
-  this.newTX = (to, from, howMuch, currency, description, groupID) => {
+  this.newTX = (to, from, howMuch, currency, description, billID) => {
     var newTXID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
     return this.client.query("INSERT INTO TRANSACTION \n \
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newTXID, to, from, currency, howMuch, dateCreated, description, 0, groupID]).then(() =>  {
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newTXID, to, from, currency, howMuch, dateCreated, description, 0, billID]).then(() =>  {
         return {
           txid: newTXID,
           from_user : from,
@@ -75,7 +75,7 @@ var database = function(db_name) {
           time: dateCreated,
           description: description,
           status: 0,
-          gid: groupID
+          bid: billID
         };
       });
   };
@@ -231,6 +231,18 @@ var database = function(db_name) {
     return map;
   };
 
+  this.processBill = (bill) => {
+    var promises = [];
+    var newBID = uuid(); 
+    for (userSplit of bill.split) {
+     promises.push(this.newTX(bill.payee, userSplit.uid,
+        userSplit.splitAmount, bill.currency, bill.description, newBID));
+    }
+    return Promises.all(promises).then(() => {
+        this.client.query('INSERT INTO BILL VALUES ($1, $2);', [newBID, bill]);
+    }).then( () => newBID);
+  };
+
 
 };
 
@@ -238,7 +250,6 @@ module.exports = {
   Database : database
 };
 
-//db.newUser("Iulia", "Ivana", "imi17@gmail.com");
 // var db = new database('webapp-testing');
 // db.verifyLogin('jackel119@gmail.com', 'david').then(res => console.log(res));
 // db.newUser("Jack", "Pordi", "jackel119@gmail.com");
