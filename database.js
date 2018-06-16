@@ -115,18 +115,19 @@ var database = function(db_name) {
 
   // Returns all users that belongs to a specific group
   // Returns a promise
-  this.getUserInGroup = (gid) => {
-    return this.client.query("SELECT USER_ACCOUNT.* FROM GROUP_MEMBERSHIP \n \
-      JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
-      WHERE GROUP_MEMBERSHIP.GID = $1\;", [gid]);
+  this.getUsersInGroup = (gid) => {
+    return this.client.query("SELECT FIRST_NAME, LAST_NAME, EMAIL \n \
+      FROM GROUP_MEMBERSHIP JOIN USER_ACCOUNT ON GROUP_MEMBERSHIP.UID = \n \
+      USER_ACCOUNT.UID JOIN USER_GROUP ON GROUP_MEMBERSHIP.GID = USER_GROUP.GID \n \
+      WHERE GROUP_MEMBERSHIP.GID = $1\;", [gid])
+    .then(res => res.rows);
   };
 
-  this.getOtherUsersInGroups = (uid) => {
-    return this.client.query("SELECT * FROM USER_ACCOUNT JOIN GROUP_MEMBERSHIP ON USER_ACCOUNT.UID = GROUP_MEMBERSHIP.UID WHERE GID IN (SELECT GID FROM GROUP_MEMBERSHIP WHERE UID = $1);", [uid]).then(res => {
-      return userListToMap(res.rows);
-    });
-
-  };
+  // this.getOtherUsersInAllGroups = (uid) => {
+  //   return this.client.query("SELECT * FROM USER_ACCOUNT JOIN GROUP_MEMBERSHIP ON USER_ACCOUNT.UID = GROUP_MEMBERSHIP.UID WHERE GID IN (SELECT GID FROM GROUP_MEMBERSHIP WHERE UID = $1);", [uid]).then(res => {
+  //     return userListToMap(res.rows);
+  //   });
+  //};
 
   // Returns the sum of the net positives
   // Returns a promise

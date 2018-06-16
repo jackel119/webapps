@@ -143,5 +143,11 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
       //   return db.getOtherUsersInGroups(res.uid);
       // }).then(res => console.log(res));
   });
-  
+
+  it('Tests Finding Users in a group', () => {
+    return db.client.query('SELECT GID FROM USER_GROUP \n \
+      ORDER BY RANDOM() LIMIT 1').then(res => res.rows[0].gid)
+      .then(res => db.getUsersInGroup(res))
+      .then(res => console.log(res));
+  });
 });
