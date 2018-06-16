@@ -279,6 +279,8 @@ io.on('connection', (socket) => {
   //  (potentially?) payee: user1,
   //  timestamp: time
   // }
+
+
   authenticatedCall('newGroupTX', (bill) => {
     // 1.) Check group/users are valid? TODO
     // 2.) add bill to bill table (DONE)
@@ -293,12 +295,18 @@ io.on('connection', (socket) => {
     });
   });
 
-  authenticatedCall('addFriend', (friend) => {
-    // Add friend TODO
+  authenticatedCall('addFriend', (friend_email) => {
+    db.addFriend(current_user(), friend_email).then( () => {
+      // Add friend
+      socket.emit('addFriendSuccess', friend_email);
+    });
   });
 
   authenticatedCall('getFriends', (friend) => {
-    // Return friends TODO
+    // Return friends FIRST_NAME, LAST_NAME. EMAIL as a list
+    db.getFriends(current_user()).then(res => {
+      socket.emit('friends', res);
+    });
   });
 
 });

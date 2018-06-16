@@ -144,22 +144,10 @@ var database = function(db_name) {
       WHERE FROM_USER = uid2 AND TO_USER = uid1\;", [uid1, uid2]);
   };
 
-  // All transactions to a user
-  // Returns a PROMISE
-  this.txsTo = (uid) => {
-    return this.client.query("SELECT * FROM TRANSACTION WHERE TO_USER = $1 ORDER BY TIME;", [uid]);
-  };
-
-  // All transactions from a user
-  // Returns a PROMISE
-  this.txsFrom = (uid) => {
-    return this.client.query("SELECT * FROM TRANSACTION WHERE FROM_USER = $1 ORDER BY TIME;", [uid]);
-  };
-
   // All transactions with user of uid
+  // Returns a PROMISE
   this.txsWith = (uid) => {
-    return this.client.query("SELECT * FROM TRANSACTION WHERE \n \
-      FROM_USER = $1 OR TO_USER = $1 ORDER BY TIME DESC;", [uid]);
+    return this.client.query("SELECT user1.email as email_from , user1.first_name as first_name_from, user1.last_name as last_name_from, user2.email as email_to, user2.first_name as first_name_to, user2.last_name as last_name_to, currency, amount, time, description FROM TRANSACTION JOIN USER_ACCOUNT as user1 ON user1.uid = TRANSACTION.from_user JOIN USER_ACCOUNT as user2 ON user2.uid = TRANSACTION.to_user WHERE TRANSACTION.from_user = $1 OR TRANSACTION.to_user = $1 ORDER BY TIME DESC;", [uid]);
   };
 
   // All group transactions
@@ -241,6 +229,21 @@ var database = function(db_name) {
     return Promises.all(promises).then(() => {
         this.client.query('INSERT INTO BILL VALUES ($1, $2);', [newBID, bill]);
     }).then( () => newBID);
+  };
+
+  // Add friends, takes in uid of requester and requestee respectively 
+  this.addFriend = (user1_uid, user2_email) => {
+    return this.client.query("INSERT INTO FRIEND VALUES ( $1, () \n \
+      (SELECT UID FROM USER_ACCOUNT WHERE EMAIL = $2) , TRUE)", [user1, user2])
+  };
+
+  this.getFriends = (uid) => {
+    return this.client.query("SELECT FIRST_NAME, LAST_NAME, EMAIL \n \
+      FROM FRIEND JOIN USER_ACCOUNT ON FRIEND.user_2 = USER_ACCOUNT.UID WHERE \n \
+      FRIEND.user_1 = $1 UNION SELECT FIRST_NAME, LAST_NAME, EMAIL FROM \n \
+      FRIEND JOIN USER_ACCOUNT ON FRIEND.user_1 = USER_ACCOUNT.UID \n \
+      WHERE FRIEND.user_2 = $1;". [uid])
+      .then(res => res.rows);
   };
 
 
