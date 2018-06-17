@@ -91,7 +91,6 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
           output.timestamp = new Date().toISOString().slice(0, 19)
             .replace('T', ' ');
           output.users = output.split.map(user => user.user);
-          output.items = [{itemname: description, price: output.totalprice}];
           output.payee = output.users[Math.floor(Math.random() * output.users.length)]
           output.author = output.payee;
           return output;
