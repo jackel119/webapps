@@ -195,7 +195,7 @@ io.on('connection', (socket) => {
   //   groupID: gid
   // }
   authenticatedCall('createTX', transaction => {
-    console.log("Receiving new transaction from", socket.id);
+    console.log("Receiving new transaction from", current_user().email);
     console.log(transaction);
     if (transaction.to == current_user().uid || transaction.from == current_user().uid) {
       // Socket user is indeed sender/receiver of transaction
