@@ -60,11 +60,12 @@ var server = https.createServer({
 var io = socket(server);
 
 // Client sockets that have been authorized 
-// authorizedClients[socket.id] = uid
+// authorizedClients[socket.id] = {uid: uid, email: email}
 var authorizedClients = {};
 
-// Map of users to sockets
+// Map of users to sockets, works with BOTH uid and emails
 // uuid -> Sets of Socket IDs
+// email -> Sets of Socket IDs
 var userToSockets = {};
 
 // Users that need to be informed of new transactions
@@ -96,7 +97,8 @@ io.on('connection', (socket) => {
   socket.on('disconnect', (reason) => {
     console.log('Socket', socket.id, 'has disconnected');
     if (authorizedClients[socket.id] != undefined) {
-      userToSockets[current_user()].delete(socket.id);
+      userToSockets[current_user().uid].delete(socket.id);
+      userToSockets[current_user().email].delete(socket.id);
       delete authorizedClients[socket.id];
     }
   });
@@ -128,11 +130,11 @@ io.on('connection', (socket) => {
   // Catches up a single socket
   // There are still edge cases around a user having multiple clients
   var catchUpUser = () => {
-    if (usersToBeInformed[current_user()] != undefined) {
-      for (var events of usersToBeInformed[current_user()]) {
+    if (usersToBeInformed[current_user().uid] != undefined) {
+      for (var events of usersToBeInformed[current_user().uid]) {
         socket.emit(events.event, events.data);
       }
-      delete usersToBeInformed[current_user()];
+      delete usersToBeInformed[current_user().uid];
     }
   };
 
@@ -144,12 +146,15 @@ io.on('connection', (socket) => {
         socket.emit('authResult', res);
         if (res.result) {
           // If true, add socket to authorized list
-          authorizedClients[socket.id] = res.data.uid;
+          authorizedClients[socket.id] = 
+                  {uid: res.data.uid, email: res.data.email};
           // Add to user to sockets map
           if (userToSockets[res.data.uid] == undefined) {
             userToSockets[res.data.uid] = new Set().add(socket.id);
+            userToSockets[res.data.email] = new Set().add(socket.id);
           } else {
             userToSockets[res.data.uid].add(socket.id);
+            userToSockets[res.data.email].add(socket.id);
           }
           catchUpUser();
         }
@@ -159,8 +164,8 @@ io.on('connection', (socket) => {
   // Sends transactions to users, of the form
   // { to: [transactions to that user] , from: [transactions from]}
   authenticatedCall('requestTXs', () => {
-    console.log('User', current_user(), 'has asked for all transactions, sending');
-    db.txsWith(current_user())
+    console.log('User', current_user().email, 'has asked for all transactions, sending');
+    db.txsWith(current_user().uid)
       .then(res => socket.emit('allTransactions', res.rows));
   });
 
@@ -192,7 +197,7 @@ io.on('connection', (socket) => {
   authenticatedCall('createTX', transaction => {
     console.log("Receiving new transaction from", socket.id);
     console.log(transaction);
-    if (transaction.to == current_user() || transaction.from == current_user()) {
+    if (transaction.to == current_user(.uid) || transaction.from == current_user().uid) {
       // Socket user is indeed sender/receiver of transaction
       db.newTX(transaction.to, transaction.from, transaction.amount,
         transaction.currency, transaction.description, transaction.groupID)
@@ -206,7 +211,7 @@ io.on('connection', (socket) => {
         .then(res => socket.emit(res)); // Emit new TXID
     } else {
       // Socket user is NOT sender/receiver of transaction
-      console.log('User', current_user(), 'is not receiver/sender of transaction');
+      console.log('User', current_user().email, 'is not receiver/sender of transaction');
       socket.emit('invalidCreation', {
         message: 'You can only create transactions to and from yourself!'
       });
@@ -215,9 +220,9 @@ io.on('connection', (socket) => {
 
   // Get groups for a user
   authenticatedCall('getGroups', () => {
-   db.belongsToGroups(current_user())
+   db.belongsToGroups(current_user().uid)
       .then(res => {
-        console.log('Sending groups to user', current_user());
+        console.log('Sending groups to user', current_user().email);
         socket.emit('groups', res);
       });
   });
@@ -238,7 +243,7 @@ io.on('connection', (socket) => {
   // }
   authenticatedCall('createNewGroup', (data) => {
     db.newGroup(data.name).then(res => {
-      db.groupAddMember(current_user(), res.gid).then(res2 => {
+      db.groupAddMember(current_user().uid, res.gid).then(res2 => {
         socket.emit('groupCreationSuccess', res);
       });
     });
@@ -287,19 +292,17 @@ io.on('connection', (socket) => {
   //  (potentially?) payee: user1_email,
   //  timestamp: time
   // }
-
-
-  authenticatedCall('newGroupTX', (bill) => {
+  authenticatedCall('newBill', (bill) => {
     // 1.) Check group/users are valid? TODO
     // 2.) add bill to bill table (DONE)
-    // 3.) Look at split and create atomic transactions 
-    // with billID based on that DONE
-    // 4.) Return success (billID) DONE
     db.processBill(bill).then( res => {
-      socket.emit('billSuccess', {
-        bid: res,
-        bill: bill
-      });
+      for (userEmail of bill.users) {
+        // inform that user
+        informUser( userToSockets(userEmail), 'newBill', ({
+          bid: res.bid,
+          bill: res.bill
+        }));
+      }
     });
   });
 
@@ -318,21 +321,23 @@ io.on('connection', (socket) => {
   //  }
   // ]
   authenticatedCall('getGroupsAndUsers', () => {
-    db.allGroupsAndUsers(current_user()).then(res => {
+    db.allGroupsAndUsers(current_user().uid).then(res => {
       socket.emit('allGroupsAndUsers', res);
     })
   });
 
+  // Add a friend
   authenticatedCall('addFriend', (friend_email) => {
-    db.addFriend(current_user(), friend_email).then( () => {
+    db.addFriend(current_user().uid, friend_email).then( () => {
       // Add friend
       socket.emit('addFriendSuccess', friend_email);
     });
   });
 
+  // Get all friends
   authenticatedCall('getFriends', (friend) => {
     // Return friends FIRST_NAME, LAST_NAME. EMAIL as a list
-    db.getFriends(current_user()).then(res => {
+    db.getFriends(current_user().uid).then(res => {
       socket.emit('friends', res);
     });
   });

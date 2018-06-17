@@ -266,7 +266,7 @@ var database = function(db_name) {
             userSplit.splitAmount, bill.currency, bill.description, newBID));
         }
         return Promise.all(promises);
-      }).then(() => newBID);
+      }).then(() => (bid: newBID, bill: bill));
   };
 
   // Add friends, takes in uid of requester and requestee respectively 
@@ -282,6 +282,10 @@ var database = function(db_name) {
       FRIEND JOIN USER_ACCOUNT ON FRIEND.user_1 = USER_ACCOUNT.UID \n \
       WHERE FRIEND.user_2 = $1;", [uid])
       .then(res => res.rows);
+  };
+
+  this.getBills = (uid) => {
+    // TODO
   };
 
 
