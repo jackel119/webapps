@@ -295,6 +295,8 @@ io.on('connection', (socket) => {
   authenticatedCall('newBill', (bill) => {
     // 1.) Check group/users are valid? TODO
     // 2.) add bill to bill table (DONE)
+    console.log(current_user().email, 'has submitted a new bill: ',
+      bill.description);
     db.processBill(bill).then( res => {
       for (userEmail of bill.users) {
         // inform that user
@@ -307,6 +309,7 @@ io.on('connection', (socket) => {
   });
 
   authenticatedCall('getBills', () => {
+    console.log(current_user().email, 'has requested their bills');
     db.getBills(current_user().uid).then(res => {
       socket.emit('allBills', res);
     });
