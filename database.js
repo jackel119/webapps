@@ -281,7 +281,9 @@ var database = function(db_name) {
   };
 
   this.getBills = (uid) => {
-    // TODO
+    return this.client.query("SELECT * FROM BILL JOIN TRANSACTION ON \n \
+      BILL.bid = TRANSACTION.bid WHERE TRANSACTION.from_user = $1 \n \
+      OR TRANSACTION.to_user = $1", [uid]).then(res => res.rows);
   };
 
 

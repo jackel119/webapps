@@ -306,6 +306,12 @@ io.on('connection', (socket) => {
     });
   });
 
+  authentiatedCall('getBills', () => {
+    db.getBills(current_user().uid).then(res => {
+      socket.emit('allBills', res);
+    });
+  });
+
   // Returns
   // [
   //  {
