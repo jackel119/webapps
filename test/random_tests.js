@@ -98,7 +98,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
         })
       };
 
-      var l = Array.from(Array(10000), (_,x) => x);
+      var l = Array.from(Array(1500), (_,x) => x);
       var ret = l.map(genBill);
       return ret.map(res => res.then(db.processBill));
 

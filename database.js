@@ -65,19 +65,22 @@ var database = function(db_name) {
     var newTXID = uuid(); 
     var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
     return this.client.query("INSERT INTO TRANSACTION \n \
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newTXID, to, from, currency, howMuch, dateCreated, description, 0, billID]).then(() =>  {
-        return {
-          txid: newTXID,
-          from_user : from,
-          to_user: to,
-          currency: currency,
-          amount: howMuch,
-          time: dateCreated,
-          description: description,
-          status: 0,
-          bid: billID
-        };
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)\;", [newTXID, to, from, currency, howMuch, dateCreated, description, 0, billID]).then((res) =>  {
+        console.log(res);
+        return res;
       });
+      //   return {
+      //     txid: newTXID,
+      //     from_user : from,
+      //     to_user: to,
+      //     currency: currency,
+      //     amount: howMuch,
+      //     time: dateCreated,
+      //     description: description,
+      //     status: 0,
+      //     bid: billID
+      //   };
+      // });
   };
 
 
@@ -88,19 +91,7 @@ var database = function(db_name) {
       VALUES ($1, (SELECT UID FROM USER_ACCOUNT WHERE EMAIL = $2), \
         (SELECT UID FROM USER_ACCOUNT WHERE EMAIL = $3), $4, $5, $6,\
         $7, $8, $9)\;", [newTXID, to, from, currency, 
-        howMuch, dateCreated, description, 0, billID]).then(() =>  {
-        return {
-          txid: newTXID,
-          from_user : from,
-          to_user: to,
-          currency: currency,
-          amount: howMuch,
-          time: dateCreated,
-          description: description,
-          status: 0,
-          bid: billID
-        };
-      });
+        howMuch, dateCreated, description, 0, billID]);
   };
 
 
@@ -256,17 +247,22 @@ var database = function(db_name) {
     return map;
   };
 
+  // Processes a bill
   this.processBill = (bill) => {
+    console.log('PROCESSING BILL');
     var newBID = uuid(); 
     this.client.query('INSERT INTO BILL VALUES ($1, $2);', [newBID, bill])
-      .then(() => {
+      .then((res) => {
         var promises = [];
         for (userSplit of bill.split) {
+          console.log(userSplit);
           promises.push(this.newTXbyEmail(bill.payee, userSplit.user,
             userSplit.splitAmount, bill.currency, bill.description, newBID));
         }
-        return Promise.all(promises);
-      }).then(() => (bid: newBID, bill: bill));
+        return (promises);
+      })
+      .then(res => Promise.all(res))
+      .then((res) => ({bid: newBID, bill: bill}));
   };
 
   // Add friends, takes in uid of requester and requestee respectively 
