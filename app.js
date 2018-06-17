@@ -267,7 +267,8 @@ io.on('connection', (socket) => {
   //            },
   //            {
   //              itemname: 'banana',
-  //              price:     2
+  //              price:     2,
+  //              split: ........
   //            }
   //          ],
   //  split: [
@@ -316,7 +317,7 @@ io.on('connection', (socket) => {
   //    ]
   //  }
   // ]
-  authenticatedCall('getGroupsAndUsers',() => {
+  authenticatedCall('getGroupsAndUsers', () => {
     db.allGroupsAndUsers(current_user()).then(res => {
       socket.emit('allGroupsAndUsers', res);
     })

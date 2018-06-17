@@ -54,31 +54,53 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
       // console.log('returned promises:', ret);
       return ret;
     }
-  
-    // Generate random user 2 user transactions
-    var genTXs = () => {
-
-      // Gets random transaction names as an array
+        
+    // Generate random bills
+    var genBills = () => {
       var tx_names = fs.readFileSync('./test/tx_names.csv', 'utf-8')
                       .split('\n');
 
-      // Generates a single random transaction
-      var genSingleTX = () => {
-        var amount  = (Math.random() * 30).toFixed(2);
-        var newTXID = uuid();
-        var time    = new Date().toISOString().slice(0, 19)
-                            .replace('T', ' ');
-        var description = tx_names[Math.floor(Math.random() * 1000)];
-        return db.client.query('INSERT INTO TRANSACTION VALUES \n \
-          ($1, (SELECT UID FROM USER_ACCOUNT ORDER BY RANDOM() LIMIT 1), \n \
-          (SELECT UID FROM USER_ACCOUNT ORDER BY RANDOM() LIMIT 1), \n \
-           $2, $3, $4, $5, 0, NULL);', 
-          [newTXID, 0, amount, time, description]);
+      // Gets random transaction names as an array
+      var genBill = () => {
+
+        var genSplit = (group) => {
+          var amount  = (Math.random() * 8).toFixed(2);
+          var userSplits = group.map(user => {
+            x = user;
+            x.user = x.email;
+            x.splitAmount = (amount / group.length).toFixed(2);
+            delete x.email;
+            delete x.first_name;
+            delete x.last_name;
+            return x;
+          });
+          return ({totalprice: amount, split: userSplits});
+        };
+
+      return db.client.query('SELECT * FROM USER_GROUP \n \
+          ORDER BY RANDOM() LIMIT 1;').then(res => {
+            return db.getUsersInGroup(res.rows[0].gid)
+            .then(users => ({gid: res.rows[0].gid, users: users}));
+      })
+        .then(res => {
+          var output         = genSplit(res.users);
+          output.groupID     = res.gid;
+          var description    = tx_names[Math.floor(Math.random() * 1000)];
+          output.description = description;
+          output.currency = 0;
+          output.timestamp = new Date().toISOString().slice(0, 19)
+            .replace('T', ' ');
+          output.users = output.split.map(user => user.user);
+          output.items = [{itemname: description, price: output.totalprice}];
+          output.payee = output.users[Math.floor(Math.random() * output.users.length)]
+          output.author = output.payee;
+          return output;
+        })
       };
 
       var l = Array.from(Array(10000), (_,x) => x);
-      var ret = l.map(genSingleTX);
-      return ret;
+      var ret = l.map(genBill);
+      return ret.map(res => res.then(db.processBill));
 
     };
 
@@ -96,6 +118,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
         db.client.query("DELETE FROM TRANSACTION"),
         db.client.query("UPDATE USER_ACCOUNT SET NET = 0;"),
         db.client.query("DELETE FROM GROUP_MEMBERSHIP"),
+        db.client.query("DELETE FROM BILL"),
         db.client.query("DELETE FROM FRIEND")])
         // db.client.query("DELETE FROM USER_GROUP")])
       .then(() => { 
@@ -109,55 +132,46 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
       .then(() => {
         return Promise.all(genFriends());
       })
-      .then(() => {
-        return Promise.all(genTXs()).then(() => console.log('Gen\'d TXs'));
-      })
+      .then(() => Promise.all(genBills()))
+      .then(() => console.log('Gen\'d Bills'))
       .then(() => done());
+    // done();
   }); 
 
-  it('Selects random user account', async () => {
-    return db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;'); //.then(res => assert(res.rowCount == 1));
-
-  });
-
-  it('Selects random groups', () => {
-    return db.client.query('SELECT * FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1;') // .then(res => console.log(res)); //assert(res.rowCount == 1));
-  });
-
-  it('Finds Groups', () => {
-    return db.belongsToGroupsByEmail('jackel119@gmail.com')
-    .then(res => console.log(res));
-  });
-
-  it('Finds other users in shared groups', () => {
-    return db.client.query('SELECT * FROM USER_ACCOUNT \n \
-      ORDER BY RANDOM() LIMIT 1;')
-      // .then(res => {
-      //   // console.log(res);
-      //   console.log(res.rows[0].email);
-      //   return db.getUserByEmail(res.rows[0].email)
-      // })
-      // .then(res => {
-      //   console.log(res); 
-      //   return db.getOtherUsersInGroups(res.uid);
-      // }).then(res => console.log(res));
-  });
-
-  it('Tests Finding Users in a group', () => {
-    return db.client.query('SELECT GID FROM USER_GROUP \n \
-      ORDER BY RANDOM() LIMIT 1').then(res => res.rows[0].gid)
-      .then(res => db.getUsersInGroup(res))
+  it('Selects a random bill', () => {
+    return db.client.query('SELECT BDATA FROM BILL ORDER BY RANDOM() LIMIT 1')
+      .then(res => res.rows[0])
       .then(res => console.log(res));
-  }); 
-  
-  it('Gets all groups that a user is in, \
-  as well as their members', () => {
-    return db.client.query('SELECT UID FROM USER_ACCOUNT \
-      ORDER BY RANDOM() LIMIT 1')
-    .then(res => res.rows[0].uid)
-    .then(res => db.allGroupsAndUsers(res))
-    .then(res => console.log(util.inspect(res, false, null)));
-  })
+  });
+
+  // it('Finds other users in shared groups', () => {
+  //   return db.client.query('SELECT * FROM USER_ACCOUNT \n \
+  //     ORDER BY RANDOM() LIMIT 1;')
+  //     // .then(res => {
+  //     //   // console.log(res);
+  //     //   console.log(res.rows[0].email);
+  //     //   return db.getUserByEmail(res.rows[0].email)
+  //     // })
+  //     // .then(res => {
+  //     //   console.log(res); 
+  //     //   return db.getOtherUsersInGroups(res.uid);
+  //     // }).then(res => console.log(res));
+  // });
+
+  // it('Tests Finding Users in a group', () => {
+  //   return db.client.query('SELECT GID FROM USER_GROUP \n \
+  //     ORDER BY RANDOM() LIMIT 1').then(res => res.rows[0].gid)
+  //     .then(res => db.getUsersInGroup(res))
+  //     .then(res => console.log(res));
+  // }); 
+  // 
+  // it('Gets all groups that a user is in, \
+  // as well as their members', () => {
+  //   return db.client.query('SELECT UID FROM USER_ACCOUNT \
+  //     ORDER BY RANDOM() LIMIT 1')
+  //   .then(res => res.rows[0].uid)
+  //   .then(res => db.allGroupsAndUsers(res))
+  //   .then(res => console.log(util.inspect(res, false, null)));
+  // })
+
 });

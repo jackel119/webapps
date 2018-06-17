@@ -81,6 +81,29 @@ var database = function(db_name) {
   };
 
 
+  this.newTXbyEmail = (to, from, howMuch, currency, description, billID) => {
+    var newTXID = uuid(); 
+    var dateCreated = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    return this.client.query("INSERT INTO TRANSACTION \n \
+      VALUES ($1, (SELECT UID FROM USER_ACCOUNT WHERE EMAIL = $2), \
+        (SELECT UID FROM USER_ACCOUNT WHERE EMAIL = $3), $4, $5, $6,\
+        $7, $8, $9)\;", [newTXID, to, from, currency, 
+        howMuch, dateCreated, description, 0, billID]).then(() =>  {
+        return {
+          txid: newTXID,
+          from_user : from,
+          to_user: to,
+          currency: currency,
+          amount: howMuch,
+          time: dateCreated,
+          description: description,
+          status: 0,
+          bid: billID
+        };
+      });
+  };
+
+
   // Gets user by email, returns a PROMISE
   // NOT SAFE, can return 0 rows if email not in db
   this.getUserByEmail = (email) => {
@@ -234,15 +257,16 @@ var database = function(db_name) {
   };
 
   this.processBill = (bill) => {
-    var promises = [];
     var newBID = uuid(); 
-    for (userSplit of bill.split) {
-     promises.push(this.newTX(bill.payee, userSplit.uid,
-        userSplit.splitAmount, bill.currency, bill.description, newBID));
-    }
-    return Promises.all(promises).then(() => {
-        this.client.query('INSERT INTO BILL VALUES ($1, $2);', [newBID, bill]);
-    }).then( () => newBID);
+    this.client.query('INSERT INTO BILL VALUES ($1, $2);', [newBID, bill])
+      .then(() => {
+        var promises = [];
+        for (userSplit of bill.split) {
+          promises.push(this.newTXbyEmail(bill.payee, userSplit.user,
+            userSplit.splitAmount, bill.currency, bill.description, newBID));
+        }
+        return Promise.all(promises);
+      }).then(() => newBID);
   };
 
   // Add friends, takes in uid of requester and requestee respectively 
