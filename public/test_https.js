@@ -19,13 +19,17 @@ socket.on('connect', () => {
     // console.log(res);
     // We have authenticated, so therefore ask for transactions
     console.log('Authentication Success!');
-    console.log('Requesting Friends now!');
+    console.log('Requesting Bills now!');
     // socket.emit('requestTXs');
-    socket.emit('getFriends');
+    socket.emit('getBills');
   });
 
   socket.on('friends', res => {
     console.log(res);
+  });
+
+  socket.on('allBills', res => {
+    console.log(res[0]);
   });
 
   // #4 When we receive transactions, print them
