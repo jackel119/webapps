@@ -306,7 +306,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  authentiatedCall('getBills', () => {
+  authenticatedCall('getBills', () => {
     db.getBills(current_user().uid).then(res => {
       socket.emit('allBills', res);
     });
