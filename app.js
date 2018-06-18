@@ -78,6 +78,65 @@ io.on('connection', (socket) => {
   console.log('Made socket connection with socket:', socket.id);
 
   //----------------------------------------------------------------
+  //------------------------SECTION: UTILS--------------------------
+  //----------------------------------------------------------------
+
+  // Gets current user in the form {uid: uid, email:email}
+  var current_user = () => {
+    return authorizedClients[socket.id];
+
+  };
+  // Wrapper for socket.on that requires the socket
+  // to have been authenticated/logged in already
+  var authenticatedCall = (ioevent, callback) => {
+    socket.on(ioevent, (data) => {
+      var uid = current_user();
+      // If socket has authenticated as a user, then proceed.
+      if (uid != undefined) {
+        callback(data);
+      } else {
+        // If unauthenticated, then deny request
+        console.log('Unauthenticated', ioevent, 'request from user', uid);
+        socket.emit('unauthenticatedRequest');
+      }
+    });
+  };
+
+  // Informs User of a certain event
+  // If user is not active, then 'remmebers' such so that user is informed
+  // after next login
+  var informUser = (uuid, event, data) => {
+    console.log('User', uuid, 'needs to be informed, checking status');
+    var socketIDs = userToSockets[uuid];
+    if (socketIDs != undefined) { // User is connected
+      console.log('User', uuid, 'is connected to sockets', socketIDs);
+      // If user is connected, notify them
+      for (var sid of socketIDs) {
+        console.log('Emitting data to socket ', sid);
+        io.to(sid).emit(event, data);
+      }
+    } else {
+      console.log('User', uuid, 'is not connected to any sockets');
+      var user_bucket = usersToBeInformed[uuid];
+      if (user_bucket == undefined) { // User does not have a bucket, create one
+        usersToBeInformed[uuid] = new Set().add({event: event, data:data}) ;
+      } else { // User has a bucket, just add to it
+        usersToBeInformed[uuid].add({event: event, data:data});
+      }
+    }
+  };
+
+  // Catches up a single socket
+  // There are still edge cases around a user having multiple clients
+  var catchUpUser = () => {
+    if (usersToBeInformed[current_user().uid] != undefined) {
+      for (var events of usersToBeInformed[current_user().uid]) {
+        socket.emit(events.event, events.data);
+      }
+      delete usersToBeInformed[current_user().uid];
+    }
+  };
+  //----------------------------------------------------------------
   //------------------------SECTION: BILLS--------------------------
   //----------------------------------------------------------------
 
@@ -339,65 +398,6 @@ io.on('connection', (socket) => {
   });
 
 
-  //----------------------------------------------------------------
-  //------------------------SECTION: UTILS--------------------------
-  //----------------------------------------------------------------
-
-  // Gets current user in the form {uid: uid, email:email}
-  var current_user = () => {
-    return authorizedClients[socket.id];
-
-  };
-  // Wrapper for socket.on that requires the socket
-  // to have been authenticated/logged in already
-  var authenticatedCall = (ioevent, callback) => {
-    socket.on(ioevent, (data) => {
-      var uid = current_user();
-      // If socket has authenticated as a user, then proceed.
-      if (uid != undefined) {
-        callback(data);
-      } else {
-        // If unauthenticated, then deny request
-        console.log('Unauthenticated', ioevent, 'request from user', uid);
-        socket.emit('unauthenticatedRequest');
-      }
-    });
-  };
-
-  // Informs User of a certain event
-  // If user is not active, then 'remmebers' such so that user is informed
-  // after next login
-  var informUser = (uuid, event, data) => {
-    console.log('User', uuid, 'needs to be informed, checking status');
-    var socketIDs = userToSockets[uuid];
-    if (socketIDs != undefined) { // User is connected
-      console.log('User', uuid, 'is connected to sockets', socketIDs);
-      // If user is connected, notify them
-      for (var sid of socketIDs) {
-        console.log('Emitting data to socket ', sid);
-        io.to(sid).emit(event, data);
-      }
-    } else {
-      console.log('User', uuid, 'is not connected to any sockets');
-      var user_bucket = usersToBeInformed[uuid];
-      if (user_bucket == undefined) { // User does not have a bucket, create one
-        usersToBeInformed[uuid] = new Set().add({event: event, data:data}) ;
-      } else { // User has a bucket, just add to it
-        usersToBeInformed[uuid].add({event: event, data:data});
-      }
-    }
-  };
-
-  // Catches up a single socket
-  // There are still edge cases around a user having multiple clients
-  var catchUpUser = () => {
-    if (usersToBeInformed[current_user().uid] != undefined) {
-      for (var events of usersToBeInformed[current_user().uid]) {
-        socket.emit(events.event, events.data);
-      }
-      delete usersToBeInformed[current_user().uid];
-    }
-  };
 });
 
 
