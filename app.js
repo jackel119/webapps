@@ -300,10 +300,13 @@ io.on('connection', (socket) => {
     db.processBill(bill).then( res => {
       for (userEmail of bill.users) {
         // inform that user
-        informUser(authorizedClients[userToSockets[userEmail]].uid, 'newBill', ({
+        var ret = ({
           bid: res.bid,
           bill: res.bill
-        }));
+        });
+        db.getUIDByEmail(userEmail).then(uid => {
+          informUser(uid, 'newBill', ret);
+        });
       }
     });
   });

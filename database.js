@@ -97,9 +97,9 @@ var database = function(db_name) {
 
   // Gets user by email, returns a PROMISE
   // NOT SAFE, can return 0 rows if email not in db
-  this.getUserByEmail = (email) => {
-    return this.client.query("SELECT * FROM USER_ACCOUNT \n \
-      WHERE EMAIL = $1 \;", [email]);
+  this.getUIDByEmail = (email) => {
+    return this.client.query("SELECT UID FROM USER_ACCOUNT \n \
+      WHERE EMAIL = $1 \;", [email]).then(res => res.rows[0].uid);
   };
   
   // Gets UID by email, returns a PROMISE
