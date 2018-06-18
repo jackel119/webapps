@@ -74,24 +74,12 @@ var usersToBeInformed = {};
 
 io.on('connection', (socket) => {
 
-  var current_user = () => {
-    return authorizedClients[socket.id];
-  };
-
-  var authenticatedCall = (ioevent, callback) => {
-    socket.on(ioevent, (data) => {
-      var uid = current_user();
-      // If socket has authenticated as a user, then proceed.
-      if (uid != undefined) {
-        callback(data);
-      } else {
-        // If unauthenticated, then deny request
-        console.log('Unauthenticated', ioevent, 'request from user', uid);
-        socket.emit('unauthenticatedRequest');
-      }
-    });
-  };
+  // Log that a socket has connected
   console.log('Made socket connection with socket:', socket.id);
+
+  //----------------------------------------------------------------
+  //------------------------SECTION: BILLS--------------------------
+  //----------------------------------------------------------------
 
   // Disconnect Event, clears up socket/user maps
   socket.on('disconnect', (reason) => {
@@ -103,40 +91,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Informs User of a certain event
-  // If user is not active, then 'remmebers' such so that user is informed
-  // after next login
-  var informUser = (uuid, event, data) => {
-    console.log('User', uuid, 'needs to be informed, checking status');
-    var socketIDs = userToSockets[uuid];
-    if (socketIDs != undefined) { // User is connected
-      console.log('User', uuid, 'is connected to sockets', socketIDs);
-      // If user is connected, notify them
-      for (var sid of socketIDs) {
-        console.log('Emitting data to socket ', sid);
-        io.to(sid).emit(event, data);
-      }
-    } else {
-      console.log('User', uuid, 'is not connected to any sockets');
-      var user_bucket = usersToBeInformed[uuid];
-      if (user_bucket == undefined) { // User does not have a bucket, create one
-        usersToBeInformed[uuid] = new Set().add({event: event, data:data}) ;
-      } else { // User has a bucket, just add to it
-        usersToBeInformed[uuid].add({event: event, data:data});
-      }
-    }
-  };
-
-  // Catches up a single socket
-  // There are still edge cases around a user having multiple clients
-  var catchUpUser = () => {
-    if (usersToBeInformed[current_user().uid] != undefined) {
-      for (var events of usersToBeInformed[current_user().uid]) {
-        socket.emit(events.event, events.data);
-      }
-      delete usersToBeInformed[current_user().uid];
-    }
-  };
 
   // Basic username-password Authentication
   socket.on('authentication', (credentials) => {
@@ -169,21 +123,6 @@ io.on('connection', (socket) => {
       .then(res => socket.emit('allTransactions', res.rows));
   });
 
-  // Client wants user details (names), gives UIDs as a list.
-  // We want to return a map (JS Object) of those UIDs to users.
-  authenticatedCall('getUsersByUID', uidList => {
-    db.getUsersByUID(uidList).then( res => {
-      socket.emit('users', res);
-    });
-  });
-
-  // Client wants user details (names), gives UIDs as a list.
-  // We want to return a map (JS Object) of those UIDs to users.
-  authenticatedCall('getUserByUID', uid => {
-    db.getUserByUID(uid).then( res => {
-      socket.emit('user', res);
-    });
-  });
 
   // Creating a new transaction.
   // transaction = {
@@ -218,36 +157,11 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Get groups for a user
-  authenticatedCall('getGroups', () => {
-   db.belongsToGroups(current_user().uid)
-      .then(res => {
-        console.log('Sending groups to user', current_user().email);
-        socket.emit('groups', res);
-      });
-  });
 
-  authenticatedCall('getMembersOfGroup', (gid) => {
-    db.getAllGroupMembers(gid).then( res => {
-      socket.emit('groupMembers', ({
-        gid: gid,
-        members: res
-      }));
-    });
-  });
-
-  // Event for creating new group
-  // {
-  //  name: 'some name',
-  //  members: list of UIDs, can be empty but NOT null
-  // }
-  authenticatedCall('createNewGroup', (data) => {
-    db.newGroup(data.name).then(res => {
-      db.groupAddMember(current_user().uid, res.gid).then(res2 => {
-        socket.emit('groupCreationSuccess', res);
-      });
-    });
-  });
+  //----------------------------------------------------------------
+  //------------------------SECTION: BILLS--------------------------
+  //----------------------------------------------------------------
+  
 
   // Event for creating new Group Transaction
   // Bill type:
@@ -261,7 +175,11 @@ io.on('connection', (socket) => {
   //              price:     1.5,
   //              split: [ 
   //                { 
-  //                  user: email,
+  //                  user: {
+  //                    email:
+  //                    first_name:
+  //                    last_name:
+  //                  },
   //                  splitAmount : value
   //                },
   //                { 
@@ -311,6 +229,7 @@ io.on('connection', (socket) => {
     });
   });
 
+  // Gets all bills
   authenticatedCall('getBills', () => {
     console.log(current_user().email, 'has requested their bills');
     db.getBills(current_user().uid).then(res => {
@@ -332,10 +251,64 @@ io.on('connection', (socket) => {
   //    ]
   //  }
   // ]
+  
+  //----------------------------------------------------------------
+  //------------------------SECTION: FRIENDS AND USERS--------------
+  //----------------------------------------------------------------
+  
+  // Client wants user details (names), gives UIDs as a list.
+  // We want to return a map (JS Object) of those UIDs to users.
+  authenticatedCall('getUsersByUID', uidList => {
+    db.getUsersByUID(uidList).then( res => {
+      socket.emit('users', res);
+    });
+  });
+
+  // Client wants user details (names), gives UIDs as a list.
+  // We want to return a map (JS Object) of those UIDs to users.
+  authenticatedCall('getUserByUID', uid => {
+    db.getUserByUID(uid).then( res => {
+      socket.emit('user', res);
+    });
+  });
+
+  // Get all groups of a current user, as well as their respective members
   authenticatedCall('getGroupsAndUsers', () => {
     db.allGroupsAndUsers(current_user().uid).then(res => {
       socket.emit('allGroupsAndUsers', res);
     })
+  });
+  
+  // Get groups for a user
+  authenticatedCall('getGroups', () => {
+   db.belongsToGroups(current_user().uid)
+      .then(res => {
+        console.log('Sending groups to user', current_user().email);
+        socket.emit('groups', res);
+      });
+  });
+
+  // Get members of a certain group
+  authenticatedCall('getMembersOfGroup', (gid) => {
+    db.getAllGroupMembers(gid).then( res => {
+      socket.emit('groupMembers', ({
+        gid: gid,
+        members: res
+      }));
+    });
+  });
+
+  // Event for creating new group
+  // {
+  //  name: 'some name',
+  //  members: list of UIDs, can be empty but NOT null
+  // }
+  authenticatedCall('createNewGroup', (data) => {
+    db.newGroup(data.name).then(res => {
+      db.groupAddMember(current_user().uid, res.gid).then(res2 => {
+        socket.emit('groupCreationSuccess', res);
+      });
+    });
   });
 
   // Add a friend
@@ -353,8 +326,81 @@ io.on('connection', (socket) => {
       socket.emit('friends', res);
     });
   });
+  
 
+  //----------------------------------------------------------------
+  //------------------------SECTION: USER SETTINGS------------------
+  //----------------------------------------------------------------
+
+  authenticatedCall('setPassword', password => {
+    db.setPassword(current_user().uid, password).then(pw_hash => {
+      socket.emit('setPasswordSuccess', pw_hash);
+    })
+  });
+
+
+  //----------------------------------------------------------------
+  //------------------------SECTION: UTILS--------------------------
+  //----------------------------------------------------------------
+
+  // Gets current user in the form {uid: uid, email:email}
+  var current_user = () => {
+    return authorizedClients[socket.id];
+
+  };
+  // Wrapper for socket.on that requires the socket
+  // to have been authenticated/logged in already
+  var authenticatedCall = (ioevent, callback) => {
+    socket.on(ioevent, (data) => {
+      var uid = current_user();
+      // If socket has authenticated as a user, then proceed.
+      if (uid != undefined) {
+        callback(data);
+      } else {
+        // If unauthenticated, then deny request
+        console.log('Unauthenticated', ioevent, 'request from user', uid);
+        socket.emit('unauthenticatedRequest');
+      }
+    });
+  };
+
+  // Informs User of a certain event
+  // If user is not active, then 'remmebers' such so that user is informed
+  // after next login
+  var informUser = (uuid, event, data) => {
+    console.log('User', uuid, 'needs to be informed, checking status');
+    var socketIDs = userToSockets[uuid];
+    if (socketIDs != undefined) { // User is connected
+      console.log('User', uuid, 'is connected to sockets', socketIDs);
+      // If user is connected, notify them
+      for (var sid of socketIDs) {
+        console.log('Emitting data to socket ', sid);
+        io.to(sid).emit(event, data);
+      }
+    } else {
+      console.log('User', uuid, 'is not connected to any sockets');
+      var user_bucket = usersToBeInformed[uuid];
+      if (user_bucket == undefined) { // User does not have a bucket, create one
+        usersToBeInformed[uuid] = new Set().add({event: event, data:data}) ;
+      } else { // User has a bucket, just add to it
+        usersToBeInformed[uuid].add({event: event, data:data});
+      }
+    }
+  };
+
+  // Catches up a single socket
+  // There are still edge cases around a user having multiple clients
+  var catchUpUser = () => {
+    if (usersToBeInformed[current_user().uid] != undefined) {
+      for (var events of usersToBeInformed[current_user().uid]) {
+        socket.emit(events.event, events.data);
+      }
+      delete usersToBeInformed[current_user().uid];
+    }
+  };
 });
+
+
 
 //-------------------------------------
 //--------Authentication stuff---------

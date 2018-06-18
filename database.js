@@ -228,6 +228,13 @@ var database = function(db_name) {
       });
   };
 
+  this.setPassword = (uid, password) => {
+    var new_pw_hash = sha256(password);
+    return this.client.query('UPDATE USER_ACCOUNT \n \
+      SET PASSWORD_HASH = $1 WHERE UID = $2', [new_pw_hash, uid])
+      .then(res => new_pw_hash);
+  };
+
   this.getUsersByUID = (uidList) => {
     return this.client.query('SELECT * FROM USER_ACCOUNT WHERE \n \
       UID = ANY($1)', [uidList]).then(res => userListToMap(res.rows));
@@ -250,13 +257,13 @@ var database = function(db_name) {
   // Processes a bill
   this.processBill = (bill) => {
     console.log('PROCESSING BILL');
+    console.log(bill);
     var newBID = uuid(); 
     return this.client.query('INSERT INTO BILL \n \
       VALUES ($1, $2);', [newBID, bill])
       .then((res) => {
         var promises = [];
         for (userSplit of bill.split) {
-          console.log(userSplit);
           promises.push(this.newTXbyEmail(bill.payee, userSplit.user,
             userSplit.splitAmount, bill.currency, bill.description, newBID));
         }
@@ -282,7 +289,7 @@ var database = function(db_name) {
   };
 
   this.getBills = (uid) => {
-    return this.client.query("SELECT BILL.BID, BILL.BDATA FROM BILL JOIN TRANSACTION ON \n \
+    return this.client.query("SELECT DISTINCT BILL.BID, BILL.BDATA FROM BILL JOIN TRANSACTION ON \n \
       BILL.bid = TRANSACTION.bid WHERE TRANSACTION.from_user = $1 \n \
       OR TRANSACTION.to_user = $1", [uid]).then(res => res.rows);
   };

@@ -67,7 +67,10 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
           var amount  = (Math.random() * 8).toFixed(2);
           var userSplits = group.map(user => {
             x = user;
-            x.user = x.email;
+            x.user = {};
+            x.user.email = x.email;
+            x.user.first_name = x.first_name;
+            x.user.last_name = x.last_name;
             x.splitAmount = (amount / group.length).toFixed(2);
             delete x.email;
             delete x.first_name;
