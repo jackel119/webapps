@@ -29,7 +29,7 @@ socket.on('connect', () => {
   });
 
   socket.on('allBills', res => {
-    console.log(res[0]);
+    console.log(res);
   });
 
   // #4 When we receive transactions, print them

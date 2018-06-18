@@ -88,6 +88,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
           var description    = tx_names[Math.floor(Math.random() * 1000)];
           output.description = description;
           output.currency = 0;
+          output.items[0].split = output.split;
           output.timestamp = new Date().toISOString().slice(0, 19)
             .replace('T', ' ');
           output.users = output.split.map(user => user.user);
