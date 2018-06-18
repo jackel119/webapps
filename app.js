@@ -382,7 +382,10 @@ io.on('connection', (socket) => {
       'as a friend');
     db.addFriend(current_user().uid, friend_email).then( () => {
       // Add friend
-      socket.emit('addFriendSuccess', friend_email);
+      socket.emit('newFriend', friend_email);
+      db.getUIDByEmail(friend_email).then(uid => {
+        informUser(uid, 'newFriend', current_user().email);
+      });
     });
   });
 
