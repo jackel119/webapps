@@ -86,7 +86,7 @@ io.on('connection', (socket) => {
 
   // Console.log but with timestamp!
   var logEvent = (...args) => {
-    logEvent(new Date().toLocaleString(), "::", ...args);
+    console.log(new Date().toLocaleString(), "::", ...args);
   };
 
   // Wrapper for socket.on that requires the socket
