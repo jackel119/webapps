@@ -276,7 +276,7 @@ var database = function(db_name) {
   // Add friends, takes in uid of requester and requestee respectively 
   this.addFriend = (user1_uid, user2_email) => {
     return this.client.query("INSERT INTO FRIEND VALUES ( $1, () \n \
-      (SELECT UID FROM USER_ACCOUNT WHERE EMAIL = $2) , TRUE)", [user1, user2])
+      (SELECT UID FROM USER_ACCOUNT WHERE EMAIL = $2) , TRUE)", [user1_uid, user2_email])
   };
 
   this.getFriends = (uid) => {
