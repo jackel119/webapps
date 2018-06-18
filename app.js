@@ -135,9 +135,11 @@ io.on('connection', (socket) => {
       }
       delete usersToBeInformed[current_user().uid];
     }
+
   };
+
   //----------------------------------------------------------------
-  //------------------------SECTION: BILLS--------------------------
+  //------------------------SECTION: CONNECTION---------------------
   //----------------------------------------------------------------
 
   // Disconnect Event, clears up socket/user maps
@@ -173,6 +175,10 @@ io.on('connection', (socket) => {
         }
     });
   });
+
+  //----------------------------------------------------------------
+  //----------------SECTION: TRANSACTIONS (DEPRECATED)--------------
+  //--------------------------TODO: REMOVE--------------------------
 
   // Sends transactions to users, of the form
   // { to: [transactions to that user] , from: [transactions from]}
