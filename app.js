@@ -74,8 +74,6 @@ var usersToBeInformed = {};
 
 io.on('connection', (socket) => {
 
-  // Log that a socket has connected
-  logEvent('Made socket connection with socket:', socket.id);
 
   //----------------------------------------------------------------
   //------------------------SECTION: UTILS--------------------------
@@ -414,6 +412,12 @@ io.on('connection', (socket) => {
   });
 
 
+  //----------------------------------------------------------------
+  //------------------------SECTION: MISC---------------------------
+  //----------------------------------------------------------------
+  
+  // Log that a socket has connected
+  logEvent('Made socket connection with socket:', socket.id);
 });
 
 
