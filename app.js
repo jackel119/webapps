@@ -84,8 +84,13 @@ io.on('connection', (socket) => {
   // Gets current user in the form {uid: uid, email:email}
   var current_user = () => {
     return authorizedClients[socket.id];
-
   };
+
+  // Console.log but with timestamp!
+  var logEvent = (...args) => {
+    logEvent(new Date().toLocaleString(), "::", ...args);
+  };
+
   // Wrapper for socket.on that requires the socket
   // to have been authenticated/logged in already
   var authenticatedCall = (ioevent, callback) => {
@@ -96,7 +101,7 @@ io.on('connection', (socket) => {
         callback(data);
       } else {
         // If unauthenticated, then deny request
-        console.log('Unauthenticated', ioevent, 'request from user', uid);
+        logEvent('Unauthenticated', ioevent, 'request from user', uid);
         socket.emit('unauthenticatedRequest');
       }
     });
@@ -106,17 +111,17 @@ io.on('connection', (socket) => {
   // If user is not active, then 'remmebers' such so that user is informed
   // after next login
   var informUser = (uuid, event, data) => {
-    console.log('User', uuid, 'needs to be informed, checking status');
+    logEvent('User', uuid, 'needs to be informed, checking status');
     var socketIDs = userToSockets[uuid];
     if (socketIDs != undefined) { // User is connected
-      console.log('User', uuid, 'is connected to sockets', socketIDs);
+      logEvent('User', uuid, 'is connected to sockets', socketIDs);
       // If user is connected, notify them
       for (var sid of socketIDs) {
-        console.log('Emitting data to socket ', sid);
+        logEvent('Emitting data to socket ', sid);
         io.to(sid).emit(event, data);
       }
     } else {
-      console.log('User', uuid, 'is not connected to any sockets');
+      logEvent('User', uuid, 'is not connected to any sockets');
       var user_bucket = usersToBeInformed[uuid];
       if (user_bucket == undefined) { // User does not have a bucket, create one
         usersToBeInformed[uuid] = new Set().add({event: event, data:data}) ;
@@ -144,7 +149,7 @@ io.on('connection', (socket) => {
 
   // Disconnect Event, clears up socket/user maps
   socket.on('disconnect', (reason) => {
-    console.log('Socket', socket.id, 'has disconnected');
+    logEvent('Socket', socket.id, 'has disconnected');
     if (authorizedClients[socket.id] != undefined) {
       userToSockets[current_user().uid].delete(socket.id);
       userToSockets[current_user().email].delete(socket.id);
@@ -155,7 +160,7 @@ io.on('connection', (socket) => {
 
   // Basic username-password Authentication
   socket.on('authentication', (credentials) => {
-    console.log(socket.id, 'has authenticated as', credentials.username);
+    logEvent(socket.id, 'has authenticated as', credentials.username);
     db.verifyLogin(credentials.username, credentials.password).then( res => {
         // Emit result of authentication, either true with uid, or false
         socket.emit('authResult', res);
@@ -183,7 +188,7 @@ io.on('connection', (socket) => {
   // Sends transactions to users, of the form
   // { to: [transactions to that user] , from: [transactions from]}
   authenticatedCall('requestTXs', () => {
-    console.log('User', current_user().email, 'has asked for all transactions, sending');
+    logEvent('User', current_user().email, 'has asked for all transactions, sending');
     db.txsWith(current_user().uid)
       .then(res => socket.emit('allTransactions', res.rows));
   });
@@ -199,8 +204,8 @@ io.on('connection', (socket) => {
   //   groupID: gid
   // }
   authenticatedCall('createTX', transaction => {
-    console.log("Receiving new transaction from", current_user().email);
-    console.log(transaction);
+    logEvent("Receiving new transaction from", current_user().email);
+    logEvent(transaction);
     if (transaction.to == current_user().uid || transaction.from == current_user().uid) {
       // Socket user is indeed sender/receiver of transaction
       db.newTX(transaction.to, transaction.from, transaction.amount,
@@ -215,7 +220,7 @@ io.on('connection', (socket) => {
         .then(res => socket.emit(res)); // Emit new TXID
     } else {
       // Socket user is NOT sender/receiver of transaction
-      console.log('User', current_user().email, 'is not receiver/sender of transaction');
+      logEvent('User', current_user().email, 'is not receiver/sender of transaction');
       socket.emit('invalidCreation', {
         message: 'You can only create transactions to and from yourself!'
       });
@@ -278,7 +283,7 @@ io.on('connection', (socket) => {
   authenticatedCall('addBill', (bill) => {
     // 1.) Check group/users are valid? TODO
     // 2.) add bill to bill table (DONE)
-    console.log(current_user().email, 'has submitted a new bill: ',
+    logEvent(current_user().email, 'has submitted a new bill: ',
       bill.description);
     db.processBill(bill).then( res => {
       for (userEmail of bill.users) {
@@ -296,7 +301,7 @@ io.on('connection', (socket) => {
 
   // Gets all bills
   authenticatedCall('getBills', () => {
-    console.log(current_user().email, 'has requested their bills');
+    logEvent(current_user().email, 'has requested their bills');
     db.getBills(current_user().uid).then(res => {
       socket.emit('allBills', res);
     });
@@ -348,7 +353,7 @@ io.on('connection', (socket) => {
   authenticatedCall('getGroups', () => {
    db.belongsToGroups(current_user().uid)
       .then(res => {
-        console.log('Sending groups to user', current_user().email);
+        logEvent('Sending groups to user', current_user().email);
         socket.emit('groups', res);
       });
   });
@@ -378,7 +383,7 @@ io.on('connection', (socket) => {
 
   // Add a friend
   authenticatedCall('addFriend', (friend_email) => {
-    console.log('User', current_user().email, 'has added', friend_email,
+    logEvent('User', current_user().email, 'has added', friend_email,
       'as a friend');
     db.addFriend(current_user().uid, friend_email).then( () => {
       // Add friend
@@ -426,7 +431,7 @@ io.on('connection', (socket) => {
 //     profileFields: ['id', 'emails', 'name']
 //   },
 //   (accessToken, refreshToken, profile, done) => {
-//     console.log(accessToken);
+//     logEvent(accessToken);
 //     console.log(profile._json);
 //     db.fb_login(profile._json);
 //     done(null, profile);
