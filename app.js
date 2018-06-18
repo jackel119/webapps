@@ -378,6 +378,8 @@ io.on('connection', (socket) => {
 
   // Add a friend
   authenticatedCall('addFriend', (friend_email) => {
+    console.log('User', current_user().email, 'has added', friend_email,
+      'as a friend');
     db.addFriend(current_user().uid, friend_email).then( () => {
       // Add friend
       socket.emit('addFriendSuccess', friend_email);
