@@ -251,7 +251,8 @@ var database = function(db_name) {
   this.processBill = (bill) => {
     console.log('PROCESSING BILL');
     var newBID = uuid(); 
-    this.client.query('INSERT INTO BILL VALUES ($1, $2);', [newBID, bill])
+    return this.client.query('INSERT INTO BILL \n \
+      VALUES ($1, $2);', [newBID, bill])
       .then((res) => {
         var promises = [];
         for (userSplit of bill.split) {
