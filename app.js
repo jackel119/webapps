@@ -300,7 +300,7 @@ io.on('connection', (socket) => {
     db.processBill(bill).then( res => {
       for (userEmail of bill.users) {
         // inform that user
-        informUser(userToSockets(userEmail), 'newBill', ({
+        informUser(userToSockets[userEmail], 'newBill', ({
           bid: res.bid,
           bill: res.bill
         }));
