@@ -264,7 +264,7 @@ var database = function(db_name) {
       .then((res) => {
         var promises = [];
         for (userSplit of bill.split) {
-          promises.push(this.newTXbyEmail(bill.payee, userSplit.user,
+          promises.push(this.newTXbyEmail(bill.payee.email, userSplit.user.email,
             userSplit.splitAmount, bill.currency, bill.description, newBID));
         }
         return (promises);
