@@ -75,7 +75,7 @@ var usersToBeInformed = {};
 io.on('connection', (socket) => {
 
   // Log that a socket has connected
-  console.log('Made socket connection with socket:', socket.id);
+  logEvent('Made socket connection with socket:', socket.id);
 
   //----------------------------------------------------------------
   //------------------------SECTION: UTILS--------------------------
