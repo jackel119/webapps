@@ -292,7 +292,7 @@ io.on('connection', (socket) => {
   //  (potentially?) payee: user1_email,
   //  timestamp: time
   // }
-  authenticatedCall('newBill', (bill) => {
+  authenticatedCall('addBill', (bill) => {
     // 1.) Check group/users are valid? TODO
     // 2.) add bill to bill table (DONE)
     console.log(current_user().email, 'has submitted a new bill: ',
