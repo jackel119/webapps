@@ -159,8 +159,8 @@ io.on('connection', (socket) => {
 
   // Basic username-password Authentication
   socket.on('authentication', (credentials) => {
-    logEvent(socket.id, 'has authenticated as', credentials.username);
     db.verifyLogin(credentials.username, credentials.password).then( res => {
+        logEvent(socket.id, 'has authenticated as', credentials.username);
         // Emit result of authentication, either true with uid, or false
         socket.emit('authResult', res);
         if (res.result) {
