@@ -115,8 +115,8 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
           ((SELECT UID FROM USER_ACCOUNT ORDER BY RANDOM() LIMIT 1), \n \
           (SELECT UID FROM USER_ACCOUNT ORDER BY RANDOM() LIMIT 1), TRUE);')
       };
-      var l = Array.from(Array(2500), (_,x) => x);
-      return l.map(genFrenship)
+      var l = Array.from(Array(4000), (_,x) => x);
+      return l.map(genFrenship);
     };
 
     Promise.all([
@@ -128,7 +128,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
         // db.client.query("DELETE FROM USER_GROUP")])
       .then(() => { 
        Promise.all([
-         newUserStream(), newGroupStream()
+         newUserStream())
        ])
      })
      //  .then(() => {
