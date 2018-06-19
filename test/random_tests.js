@@ -127,14 +127,14 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
         db.client.query("DELETE FROM FRIEND")])
         // db.client.query("DELETE FROM USER_GROUP")])
       .then(() => { 
-     //    Promise.all([
-     //      newUserStream(), newGroupStream()
-     //    ])
-     //  })
+       Promise.all([
+         newUserStream(), newGroupStream()
+       ])
+     })
      //  .then(() => {
      //   return Promise.all(genGroupMembers());
      // })
-     //.then(() => {
+     .then(() => {
         return Promise.all(genFriends());
       })
       .then(() => null )//Promise.all(genBills()))
