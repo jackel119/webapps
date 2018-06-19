@@ -366,7 +366,7 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Event for creating new group
+  // Event for creating new group. Also adds self to that new group.
   // {
   //  name: 'some name',
   //  members: list of UIDs, can be empty but NOT null
@@ -376,6 +376,15 @@ io.on('connection', (socket) => {
       db.groupAddMember(current_user().uid, res.gid).then(res2 => {
         socket.emit('groupCreationSuccess', res);
       });
+    });
+  });
+
+  authenticatedCall('addUserToGroup', (email, gid) => {
+    db.groupAddMeber(email, gid).then(res => {
+      socket.emit('addUserToGroupSuccess', ({
+        gid: gid,
+        email: email
+      }));
     });
   });
 

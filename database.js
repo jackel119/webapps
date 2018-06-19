@@ -35,16 +35,13 @@ var database = function(db_name) {
   // Adds USER with uid to GROUP with gid
   // SAFE: Doesn't add user if already in group, but doesn't return whether
   //       that is the case.
-  this.groupAddMember = (uid, gid) => {
-    // Check if user is already in group or not
-    // if user not in group, then add to group
-    return this.checkGroupMembership(uid, gid).then(res => {
-      if (res) {
-        console.log('Adding user into group');
-        return this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
-        VALUES ($1, $2)\;", [gid, uid]).then(res => ({gid: gid, uid: uid}));
-      };
-    });
+  this.groupAddMember = (email, gid) => {
+    return this.getUIDByEmail(email).then(res => {
+          return this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
+            VALUES ($1, (SELECT UID FROM USER_ACCOUNT \n \
+            WHERE EMAIL = $2))\;", [gid, uid]);
+    })
+    .then(res => ({gid: gid, uid: uid}));
   };
 
   // A PROMISE that returns true if USER with uid is NOT in group with GID
