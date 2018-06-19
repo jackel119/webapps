@@ -41,7 +41,7 @@ var database = function(db_name) {
             VALUES ($1, (SELECT UID FROM USER_ACCOUNT \n \
             WHERE EMAIL = $2))\;", [gid, res]);
     })
-    .then(res => ({gid: gid, uid: uid}));
+    .then(res => ({gid: gid, uid: res}));
   };
 
   // A PROMISE that returns true if USER with uid is NOT in group with GID
