@@ -124,6 +124,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
         db.client.query("UPDATE USER_ACCOUNT SET NET = 0;"),
         db.client.query("DELETE FROM GROUP_MEMBERSHIP"),
         db.client.query("DELETE FROM BILL"),
+        db.client.query("DELETE FROM GROUP"),
         db.client.query("DELETE FROM FRIEND")])
         // db.client.query("DELETE FROM USER_GROUP")])
       .then(() => { 

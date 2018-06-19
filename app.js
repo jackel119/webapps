@@ -160,10 +160,10 @@ io.on('connection', (socket) => {
   // Basic username-password Authentication
   socket.on('authentication', (credentials) => {
     db.verifyLogin(credentials.username, credentials.password).then( res => {
-        logEvent(socket.id, 'has authenticated as', credentials.username);
         // Emit result of authentication, either true with uid, or false
         socket.emit('authResult', res);
         if (res.result) {
+          logEvent(socket.id, 'has authenticated as', credentials.username);
           // If true, add socket to authorized list
           authorizedClients[socket.id] = 
                   {uid: res.data.uid, email: res.data.email};
@@ -176,6 +176,8 @@ io.on('connection', (socket) => {
             userToSockets[res.data.email].add(socket.id);
           }
           catchUpUser();
+        } else {
+          logEvent(socket.id, 'has FAILED to authenticate as', credentials.username);
         }
     });
   });
@@ -405,11 +407,23 @@ io.on('connection', (socket) => {
   authenticatedCall('addFriend', (friend_email) => {
     logEvent('User', current_user().email, 'has added', friend_email,
       'as a friend');
+    // Add friend
     db.addFriend(current_user().uid, friend_email).then( () => {
-      // Add friend
-      socket.emit('newFriend', friend_email);
-      db.getUIDByEmail(friend_email).then(uid => {
-        informUser(uid, 'newFriend', current_user().email);
+      // Inform the adder of success
+      db.getUserByEmail(friend_email).then(added => {
+        socket.emit('newFriend', ({
+          first_name : added.first_name,
+          last_name : added.last_name,
+          email: friend_email
+        }));
+        // Inform the added of success
+        db.getUserByEmail(current_user().email).then(adder => {
+          informUser(adder.uid, 'newFriend', ({
+            first_name : adder.first_name,
+            last_name : adder.last_name,
+            email: friend_email
+          }));
+        });
       });
     });
   });
