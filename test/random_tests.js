@@ -134,7 +134,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
      //  .then(() => {
      //   return Promise.all(genGroupMembers());
      // })
-      .then(() => {
+     //.then(() => {
         return Promise.all(genFriends());
       })
       .then(() => null )//Promise.all(genBills()))
