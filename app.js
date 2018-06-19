@@ -148,7 +148,7 @@ io.on('connection', (socket) => {
   // Disconnect Event, clears up socket/user maps
   socket.on('disconnect', (reason) => {
     logEvent('Socket', socket.id, 
-      'has disconnected due to', reason,'was logged in as', current_user().email);
+      'has disconnected due to', reason);
     if (authorizedClients[socket.id] != undefined) {
       userToSockets[current_user().uid].delete(socket.id);
       userToSockets[current_user().email].delete(socket.id);
