@@ -37,6 +37,7 @@ var database = function(db_name) {
   //       that is the case.
   this.groupAddMember = (email, gid) => {
     return this.getUIDByEmail(email).then(res => {
+          console.log(res);
           return this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
             VALUES ($1, (SELECT UID FROM USER_ACCOUNT \n \
             WHERE EMAIL = $2))\;", [gid, res]);

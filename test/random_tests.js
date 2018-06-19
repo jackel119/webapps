@@ -115,7 +115,7 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
           ((SELECT UID FROM USER_ACCOUNT ORDER BY RANDOM() LIMIT 1), \n \
           (SELECT UID FROM USER_ACCOUNT ORDER BY RANDOM() LIMIT 1), TRUE);')
       };
-      var l = Array.from(Array(5000), (_,x) => x);
+      var l = Array.from(Array(2500), (_,x) => x);
       return l.map(genFrenship)
     };
 
@@ -132,8 +132,8 @@ describe('Generates randomized groups from fake data and simulates TXs', () => {
      //    ])
      //  })
      //  .then(() => {
-        return Promise.all(genGroupMembers());
-      })
+     //   return Promise.all(genGroupMembers());
+     // })
       .then(() => {
         return Promise.all(genFriends());
       })
