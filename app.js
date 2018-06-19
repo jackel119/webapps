@@ -99,7 +99,7 @@ io.on('connection', (socket) => {
         callback(data);
       } else {
         // If unauthenticated, then deny request
-        logEvent('Unauthenticated', ioevent, 'request from user', uid);
+        logEvent('Unauthenticated', ioevent, 'request from user', uid, 'from socket', socket.id);
         socket.emit('unauthenticatedRequest');
       }
     });
@@ -147,7 +147,8 @@ io.on('connection', (socket) => {
 
   // Disconnect Event, clears up socket/user maps
   socket.on('disconnect', (reason) => {
-    logEvent('Socket', socket.id, 'has disconnected');
+    logEvent('Socket', socket.id, 
+      'has disconnected due to', reason,'was logged in as', current_user().email);
     if (authorizedClients[socket.id] != undefined) {
       userToSockets[current_user().uid].delete(socket.id);
       userToSockets[current_user().email].delete(socket.id);
