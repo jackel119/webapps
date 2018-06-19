@@ -39,7 +39,7 @@ var database = function(db_name) {
     return this.getUIDByEmail(email).then(res => {
           return this.client.query("INSERT INTO GROUP_MEMBERSHIP \n \
             VALUES ($1, (SELECT UID FROM USER_ACCOUNT \n \
-            WHERE EMAIL = $2))\;", [gid, uid]);
+            WHERE EMAIL = $2))\;", [gid, res]);
     })
     .then(res => ({gid: gid, uid: uid}));
   };
