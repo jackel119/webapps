@@ -370,9 +370,10 @@ io.on('connection', (socket) => {
   // Event for creating new group. Also adds self to that new group.
   // {
   //  name: 'some name',
-  //  TODO members: list of emails, can be empty but NOT null
+  //  members: list of emails, can be empty but NOT null
   // }
   authenticatedCall('createNewGroup', (data) => {
+    logEvent(current_user().email, 'has asked to create a new group:', data);
     db.newGroup(data.name).then(res => {
       var promises = [];
       for (var email of data.members) {
