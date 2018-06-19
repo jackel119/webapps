@@ -291,7 +291,7 @@ io.on('connection', (socket) => {
         // inform that user
         var ret = ({
           bid: res.bid,
-          bill: res.bill
+          bdata: res.bill
         });
         db.getUIDByEmail(userEmail).then(uid => {
           informUser(uid, 'newBill', ret);
